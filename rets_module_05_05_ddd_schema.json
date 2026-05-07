@@ -1,0 +1,413 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RETS-MODULE-05 데이터 객체 스키마 정의",
+  "description": "요구사항 기반 테스트케이스 생성 도구(RETS-MODULE-05)의 In-Memory 데이터 객체 스키마. 버전: 1.0 / 작성일: 2026-05-07",
+  "version": "1.0.0",
+  "definitions": {
+    "enums": {
+      "ScenarioType": {
+        "type": "string",
+        "enum": ["Normal", "Exception", "Boundary"],
+        "description": "테스트 시나리오 유형: 정상(Normal), 예외(Exception), 경계(Boundary)"
+      },
+      "TestCaseStatus": {
+        "type": "string",
+        "enum": ["Draft", "Accepted", "Rejected", "Needs_Update", "Deprecated"],
+        "description": "테스트케이스 상태"
+      },
+      "TestCaseSource": {
+        "type": "string",
+        "enum": ["LLM", "Manual"],
+        "description": "테스트케이스 생성 출처"
+      },
+      "MappingType": {
+        "type": "string",
+        "enum": ["primary", "secondary"],
+        "description": "매핑 관계 유형: 주요 매핑(primary) / 참조 매핑(secondary)"
+      },
+      "ChangeRecommendationType": {
+        "type": "string",
+        "enum": ["Keep", "Update", "Deprecate", "Add_New"],
+        "description": "LLM 변경 권고 유형"
+      },
+      "ChangeRecommendationStatus": {
+        "type": "string",
+        "enum": ["Pending", "Accepted", "Rejected"],
+        "description": "변경 권고 처리 상태"
+      },
+      "LLMSessionStatus": {
+        "type": "string",
+        "enum": ["idle", "active", "error"],
+        "description": "LLM Chat 세션 상태"
+      },
+      "Language": {
+        "type": "string",
+        "enum": ["ko", "en"],
+        "description": "UI 표시 언어"
+      },
+      "Theme": {
+        "type": "string",
+        "enum": ["light", "dark"],
+        "description": "UI 테마"
+      }
+    },
+    "Requirement": {
+      "$id": "#/definitions/Requirement",
+      "type": "object",
+      "description": "DDO-001: 로드된 DEV-REQ 요구사항 항목. rets_02c_req_schema.json의 DevRequirement 기반 + 모듈 내부 확장 필드.",
+      "required": [
+        "req_id", "req_type", "req_version", "req_level", "req_name",
+        "functional_class", "req_category", "description",
+        "created_by", "last_modified_date", "req_status"
+      ],
+      "properties": {
+        "req_id": {
+          "type": "string",
+          "pattern": "^DEV_(FR|NFR)_\\d{3}(_\\d{2}){0,4}$",
+          "description": "요구사항 고유 ID. DEV_FR / DEV_NFR 프리픽스 + 계층 구조."
+        },
+        "req_type": {
+          "type": "string",
+          "enum": ["DEV"],
+          "description": "고정값 DEV (MODULE-05는 DEV-REQ만 입력으로 사용)"
+        },
+        "req_version": {
+          "type": "string",
+          "description": "요구사항 버전. 예: '1.0', '1.2'"
+        },
+        "req_level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "계층 깊이 (req_id의 SEQ 이후 _XX 수 + 1과 일치)"
+        },
+        "req_name": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "요구사항명"
+        },
+        "functional_class": {
+          "type": "string",
+          "enum": ["기능", "비기능"],
+          "description": "기능/비기능 구분 (req_id의 FR/NFR과 일치)"
+        },
+        "req_category": {
+          "type": "string",
+          "enum": ["기능","인터페이스","데이터","배치","성능","보안","가용성","유지보수성","운영","제약사항","기타"],
+          "description": "요구사항 유형"
+        },
+        "domain_area": {
+          "type": "string",
+          "description": "도메인 영역 (참조용)"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "요구사항 상세 설명"
+        },
+        "acceptance_criteria": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "완료 기준 목록"
+        },
+        "verification_method": {
+          "type": "string",
+          "enum": ["테스트","검사","분석","시연","검토"],
+          "description": "검증 방법"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["MUST","SHOULD","COULD","WONT"],
+          "description": "MoSCoW 우선순위"
+        },
+        "importance": {
+          "type": "string",
+          "enum": ["Critical","High","Medium","Low"],
+          "description": "중요도"
+        },
+        "req_status": {
+          "type": "string",
+          "enum": ["Draft","InReview","Approved","Rejected","Deferred","Deprecated"],
+          "description": "요구사항 상태"
+        },
+        "dev_status": {
+          "type": "string",
+          "enum": ["Todo","InProgress","Done","Blocked","Skipped"],
+          "description": "개발 진행 상태"
+        },
+        "source_rfp_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "근거 RFP 요구사항 ID 목록"
+        },
+        "story_points": {
+          "type": "integer",
+          "description": "스토리포인트"
+        },
+        "estimated_effort": {
+          "type": "number",
+          "description": "예상 공수 (Man-Day)"
+        },
+        "created_by": {
+          "type": "string",
+          "description": "발의자"
+        },
+        "last_modified_date": {
+          "type": "string",
+          "format": "date",
+          "description": "최종 수정일 (YYYY-MM-DD)"
+        },
+        "is_changed": {
+          "type": "boolean",
+          "default": false,
+          "description": "[MODULE-05 확장] 변경 플래그. 사용자가 변경된 것으로 표시한 경우 true."
+        }
+      },
+      "additionalProperties": true
+    },
+    "TestCase": {
+      "$id": "#/definitions/TestCase",
+      "type": "object",
+      "description": "DDO-002: LLM 생성 또는 수동 추가된 테스트케이스.",
+      "required": ["tc_id", "source_req_id", "scenario_type", "title", "expected_result", "status", "source", "created_at"],
+      "properties": {
+        "tc_id": {
+          "type": "string",
+          "pattern": "^TC-DEV_(FR|NFR)_\\d{3}(_\\d{2}){0,4}-\\d{3}$",
+          "description": "테스트케이스 고유 ID. 형식: TC-{req_id}-{seq3}. 예: TC-DEV_FR_001_01-001"
+        },
+        "source_req_id": {
+          "type": "string",
+          "pattern": "^DEV_(FR|NFR)_\\d{3}(_\\d{2}){0,4}$",
+          "description": "생성 기반 요구사항 ID (DDO-001.req_id 참조)"
+        },
+        "scenario_type": {
+          "$ref": "#/definitions/enums/ScenarioType"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "테스트 제목"
+        },
+        "precondition": {
+          "type": "string",
+          "description": "Given: 전제조건"
+        },
+        "input": {
+          "type": "string",
+          "description": "When: 입력값 또는 사용자 액션"
+        },
+        "steps": {
+          "type": "string",
+          "description": "수행 절차 (단계별 기술)"
+        },
+        "expected_result": {
+          "type": "string",
+          "description": "Then: 예상결과"
+        },
+        "status": {
+          "$ref": "#/definitions/enums/TestCaseStatus"
+        },
+        "source": {
+          "$ref": "#/definitions/enums/TestCaseSource"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "생성 시각 (ISO 8601)"
+        },
+        "last_modified_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "최종 수정 시각 (ISO 8601)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Mapping": {
+      "$id": "#/definitions/Mapping",
+      "type": "object",
+      "description": "DDO-003: 요구사항↔테스트케이스 양방향 추적 매핑.",
+      "required": ["mapping_id", "req_id", "tc_id", "mapping_type", "created_at"],
+      "properties": {
+        "mapping_id": {
+          "type": "string",
+          "pattern": "^MAP-\\d{5}$",
+          "description": "매핑 고유 ID. 형식: MAP-{seq5}. 예: MAP-00001"
+        },
+        "req_id": {
+          "type": "string",
+          "pattern": "^DEV_(FR|NFR)_\\d{3}(_\\d{2}){0,4}$",
+          "description": "연결된 요구사항 ID (DDO-001 참조)"
+        },
+        "tc_id": {
+          "type": "string",
+          "description": "연결된 테스트케이스 ID (DDO-002 참조)"
+        },
+        "mapping_type": {
+          "$ref": "#/definitions/enums/MappingType"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "매핑 생성 시각 (ISO 8601)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ChangeRecommendation": {
+      "$id": "#/definitions/ChangeRecommendation",
+      "type": "object",
+      "description": "DDO-004: 요구사항 변경 시 LLM이 제시하는 TC 변경 권고.",
+      "required": ["rec_id", "changed_req_id", "affected_tc_id", "recommendation", "rationale", "status", "created_at"],
+      "properties": {
+        "rec_id": {
+          "type": "string",
+          "pattern": "^REC-\\d{5}$",
+          "description": "권고 고유 ID. 형식: REC-{seq5}. 예: REC-00001"
+        },
+        "changed_req_id": {
+          "type": "string",
+          "pattern": "^DEV_(FR|NFR)_\\d{3}(_\\d{2}){0,4}$",
+          "description": "변경된 요구사항 ID (DDO-001 참조)"
+        },
+        "affected_tc_id": {
+          "type": "string",
+          "description": "영향받는 TC ID (DDO-002 참조)"
+        },
+        "recommendation": {
+          "$ref": "#/definitions/enums/ChangeRecommendationType"
+        },
+        "rationale": {
+          "type": "string",
+          "description": "LLM이 제시한 권고 근거 텍스트"
+        },
+        "status": {
+          "$ref": "#/definitions/enums/ChangeRecommendationStatus"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "권고 생성 시각 (ISO 8601)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LLMSession": {
+      "$id": "#/definitions/LLMSession",
+      "type": "object",
+      "description": "DDO-005: LLM 릴레이 서버와의 Chat 세션 정보.",
+      "required": ["session_id", "team_id", "status"],
+      "properties": {
+        "session_id": {
+          "type": "string",
+          "description": "LLM 릴레이 서버에서 반환한 세션 고유 ID"
+        },
+        "team_id": {
+          "type": "string",
+          "description": "팀 식별자. 예: 'team2'"
+        },
+        "status": {
+          "$ref": "#/definitions/enums/LLMSessionStatus"
+        },
+        "initialized_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "세션 초기화 시각"
+        },
+        "system_prompt": {
+          "type": "string",
+          "description": "초기화에 사용된 시스템 프롬프트 전문"
+        },
+        "last_request_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "마지막 LLM 요청 시각"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AppConfig": {
+      "$id": "#/definitions/AppConfig",
+      "type": "object",
+      "description": "DDO-006: 앱 수준 설정 (team_id, 언어, 테마).",
+      "required": ["team_id", "language", "theme"],
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "minLength": 1,
+          "default": "team2",
+          "description": "LLM 릴레이 서버 호출에 사용할 팀 ID"
+        },
+        "language": {
+          "$ref": "#/definitions/enums/Language"
+        },
+        "theme": {
+          "$ref": "#/definitions/enums/Theme"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "AppState": {
+    "type": "object",
+    "description": "MODULE-05 앱의 전체 In-Memory 상태 구조 (루트 상태 객체)",
+    "required": ["requirements", "testCases", "mappings", "changeRecommendations", "llmSession", "config"],
+    "properties": {
+      "requirements": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/Requirement" },
+        "description": "로드된 DEV-REQ 목록 (DDO-001 배열)"
+      },
+      "testCases": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/TestCase" },
+        "description": "생성된 테스트케이스 목록 (DDO-002 배열)"
+      },
+      "mappings": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/Mapping" },
+        "description": "요구사항↔TC 매핑 목록 (DDO-003 배열). uniqueItems: (req_id, tc_id) 조합"
+      },
+      "changeRecommendations": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/ChangeRecommendation" },
+        "description": "LLM 변경 권고 목록 (DDO-004 배열)"
+      },
+      "llmSession": {
+        "$ref": "#/definitions/LLMSession",
+        "description": "현재 LLM 세션 (DDO-005, null 가능)"
+      },
+      "config": {
+        "$ref": "#/definitions/AppConfig",
+        "description": "앱 설정 (DDO-006)"
+      }
+    }
+  },
+  "CSVOutputSchemas": {
+    "TestCaseCSV": {
+      "description": "TC 목록 CSV 출력 스키마 (rets_module_05_tc_list.csv)",
+      "columns": [
+        { "name": "tc_id",           "type": "string", "required": true,  "description": "TC 고유 ID" },
+        { "name": "req_id",          "type": "string", "required": true,  "description": "연결 요구사항 ID" },
+        { "name": "scenario_type",   "type": "string", "required": true,  "description": "Normal / Exception / Boundary" },
+        { "name": "title",           "type": "string", "required": true,  "description": "테스트 제목" },
+        { "name": "precondition",    "type": "string", "required": false, "description": "전제조건 (Given)" },
+        { "name": "input",           "type": "string", "required": false, "description": "입력값/액션 (When)" },
+        { "name": "steps",           "type": "string", "required": false, "description": "수행 절차" },
+        { "name": "expected_result", "type": "string", "required": true,  "description": "예상결과 (Then)" },
+        { "name": "status",          "type": "string", "required": true,  "description": "TC 상태" }
+      ]
+    },
+    "TraceMartixCSV": {
+      "description": "추적 매트릭스 CSV 출력 스키마 (rets_module_05_trace_matrix.csv)",
+      "columns": [
+        { "name": "req_id",       "type": "string", "required": true,  "description": "요구사항 ID" },
+        { "name": "req_name",     "type": "string", "required": true,  "description": "요구사항명" },
+        { "name": "tc_id",        "type": "string", "required": true,  "description": "테스트케이스 ID" },
+        { "name": "tc_title",     "type": "string", "required": true,  "description": "테스트케이스 제목" },
+        { "name": "mapping_type", "type": "string", "required": true,  "description": "primary / secondary" }
+      ]
+    }
+  }
+}
