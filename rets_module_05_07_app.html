@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RETS MODULE-05 — 요구사항 기반 테스트케이스 생성</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --bg:#FFFFFF; --surface:#F9FAFB; --surface-2:#F3F4F6;
+  --border:#E5E7EB; --border-md:#D1D5DB;
+  --text-pri:#111827; --text-sec:#6B7280; --text-dis:#9CA3AF;
+  --accent:#F97316; --accent-hover:#FB923C; --accent-light:#FFF3E0;
+  --success:#1CB357; --success-bg:#F0FDF4; --success-border:#BBF7D0;
+  --error:#8c3131; --error-bg:#FEF2F2; --error-border:#FECACA;
+  --warn:#D97706; --warn-bg:#FFFBEB; --warn-border:#FDE68A;
+  --info:#3375E8; --info-bg:#EFF6FF; --info-border:#BFDBFE;
+  --sidebar-w:200px; --header-h:52px;
+  --radius:8px; --shadow:0 1px 3px rgba(0,0,0,0.08);
+  --font:'Noto Sans KR',sans-serif;
+}
+[data-theme="dark"] {
+  --bg:#101111; --surface:#1c1d1d; --surface-2:#262727;
+  --border:#303232; --border-md:#404242;
+  --text-pri:#F8FAFC; --text-sec:#94A3B8; --text-dis:#475569;
+  --accent:#F97316; --accent-hover:#FB923C; --accent-light:#451A03;
+  --success:#3DD171; --success-bg:#052E16; --success-border:#166534;
+  --error:#F87171; --error-bg:#450A0A; --error-border:#991B1B;
+  --warn:#FBBF24; --warn-bg:#451A03; --warn-border:#92400E;
+  --info:#5299F0; --info-bg:#172554; --info-border:#1E40AF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:13px;letter-spacing:-0.04em;background:var(--bg);color:var(--text-pri);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+/* Header */
+#header{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:100}
+#header .logo{font-weight:700;font-size:15px;color:var(--accent);cursor:pointer;white-space:nowrap}
+#header .logo span{color:var(--text-pri)}
+#header .spacer{flex:1}
+.hbtn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;color:var(--text-sec);font-size:12px;font-family:var(--font);letter-spacing:-0.04em;transition:all .15s}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+.hbtn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+/* Layout */
+#layout{display:flex;flex:1;overflow:hidden}
+/* Sidebar */
+#sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;transition:width .2s}
+#sidebar.collapsed{width:52px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;color:var(--text-sec);border-left:3px solid transparent;transition:all .15s;white-space:nowrap;overflow:hidden;font-size:13px}
+.nav-item:hover{background:var(--surface-2);color:var(--text-pri)}
+.nav-item.active{background:var(--accent-light);color:var(--accent);border-left-color:var(--accent);font-weight:600}
+.nav-item .icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.nav-label{overflow:hidden;text-overflow:ellipsis}
+#sidebar.collapsed .nav-label{display:none}
+.nav-badge{margin-left:auto;background:var(--error);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;flex-shrink:0}
+#sidebar.collapsed .nav-badge{display:none}
+/* Main */
+#main{flex:1;overflow-y:auto;padding:20px;background:var(--bg)}
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:700;color:var(--text-pri);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s}
+.stat-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.stat-card .val{font-size:28px;font-weight:700;color:var(--text-pri);line-height:1.2}
+.stat-card .lbl{font-size:11px;color:var(--text-sec);margin-top:4px}
+.stat-card.warn-card{border-color:var(--warn-border);background:var(--warn-bg)}
+.stat-card.warn-card .val{color:var(--warn)}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:6px;border:1px solid transparent;cursor:pointer;font-size:12px;font-family:var(--font);letter-spacing:-0.04em;font-weight:500;transition:all .15s;white-space:nowrap}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover:not(:disabled){background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn-outline{background:transparent;color:var(--text-pri);border-color:var(--border-md)}
+.btn-outline:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.btn-success{background:transparent;color:var(--success);border-color:var(--success-border)}
+.btn-success:hover:not(:disabled){background:var(--success-bg)}
+.btn-danger{background:transparent;color:var(--error);border-color:var(--error-border)}
+.btn-danger:hover:not(:disabled){background:var(--error-bg)}
+.btn-ghost{background:transparent;color:var(--text-sec);border-color:transparent}
+.btn-ghost:hover:not(:disabled){color:var(--text-pri);border-color:var(--border)}
+.btn-sm{padding:4px 10px;font-size:11px}
+/* Inputs */
+.input{width:100%;padding:7px 10px;border:1px solid var(--border-md);border-radius:6px;background:var(--bg);color:var(--text-pri);font-size:12px;font-family:var(--font);letter-spacing:-0.04em;outline:none;transition:border .15s}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(249,115,22,0.15)}
+/* Tables */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:var(--surface-2);padding:8px 10px;text-align:left;font-weight:600;color:var(--text-sec);border-bottom:2px solid var(--border);white-space:nowrap}
+.tbl td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.tbl tr:hover td{background:var(--surface)}
+.tbl .mono{font-size:11px;color:var(--text-sec);font-family:monospace}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap}
+.badge-normal{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border)}
+.badge-exception{background:var(--error-bg);color:var(--error);border:1px solid var(--error-border)}
+.badge-boundary{background:var(--info-bg);color:var(--info);border:1px solid var(--info-border)}
+.badge-must{background:var(--error-bg);color:var(--error)}
+.badge-should{background:var(--warn-bg);color:var(--warn)}
+.badge-could{background:var(--info-bg);color:var(--info)}
+.badge-accepted{background:var(--success-bg);color:var(--success)}
+.badge-rejected{background:var(--surface-2);color:var(--text-dis)}
+.badge-draft{background:var(--surface-2);color:var(--text-sec)}
+.badge-keep{background:var(--success-bg);color:var(--success)}
+.badge-update{background:var(--warn-bg);color:var(--warn)}
+.badge-deprecate{background:var(--error-bg);color:var(--error)}
+.badge-add_new{background:var(--info-bg);color:var(--info)}
+/* Tabs */
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:14px;gap:2px}
+.tab{padding:8px 16px;cursor:pointer;color:var(--text-sec);font-size:12px;font-weight:500;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab:hover{color:var(--text-pri)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:700}
+/* Spinner */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.loading-box{background:var(--surface);border-radius:12px;padding:24px 32px;display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.2)}
+.loading-box .spinner{width:32px;height:32px;border-width:3px}
+.loading-msg{font-size:13px;color:var(--text-sec)}
+/* Notice / Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:2000;font-size:12px;display:flex;gap:8px;align-items:center;animation:slideIn .2s ease}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}}
+.toast.success{border-color:var(--success-border)}
+.toast.error{border-color:var(--error-border)}
+/* File drop zone */
+.drop-zone{border:2px dashed var(--border-md);border-radius:var(--radius);padding:32px;text-align:center;cursor:pointer;transition:all .15s;color:var(--text-sec)}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+.drop-zone p{margin-top:8px;font-size:12px}
+/* Tree grid */
+.tree-row{display:grid;align-items:start}
+.tree-row:hover{background:var(--surface)}
+.indent-1{padding-left:4px} .indent-2{padding-left:20px} .indent-3{padding-left:36px}
+.indent-4{padding-left:52px} .indent-5{padding-left:68px}
+.changed-row{background:var(--warn-bg) !important}
+/* Graph */
+#graph-canvas{width:100%;height:500px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+#graph-canvas svg{width:100%;height:100%}
+.node-req rect{fill:var(--info-bg);stroke:var(--info);stroke-width:1.5px;rx:4}
+.node-scenario circle{fill:var(--accent);opacity:0.9}
+.node-tc polygon{fill:var(--success-bg);stroke:var(--success);stroke-width:1.5px}
+.node text{font-size:9px;fill:var(--text-pri);font-family:var(--font);pointer-events:none}
+.link{stroke:var(--border-md);stroke-opacity:0.8;stroke-width:1}
+.node.dimmed{opacity:0.15}
+/* Matrix */
+.matrix-wrap{overflow:auto;max-height:420px}
+.matrix-tbl th{position:sticky;top:0;z-index:1;font-size:10px;writing-mode:vertical-rl;transform:rotate(180deg);min-width:36px;max-width:36px;background:var(--surface-2);padding:8px 4px;cursor:default}
+.matrix-cell{width:36px;height:36px;text-align:center;cursor:pointer;border:1px solid var(--border);font-size:14px;transition:background .1s}
+.matrix-cell.mapped{background:var(--success-bg);color:var(--success)}
+.matrix-cell.mapped:hover{background:var(--error-bg);color:var(--error)}
+.matrix-cell:not(.mapped):hover{background:var(--accent-light);color:var(--accent)}
+.matrix-cell.hl{background:var(--warn-bg) !important}
+/* Progress */
+.progress-wrap{background:var(--surface-2);border-radius:4px;height:8px;overflow:hidden;flex:1}
+.progress-bar{height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
+/* Rec card */
+.rec-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.rec-card.accepted{border-color:var(--success-border);background:var(--success-bg)}
+.rec-card.rejected{opacity:0.5}
+/* Settings form */
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:600;color:var(--text-sec);margin-bottom:6px;display:block}
+.radio-group{display:flex;gap:12px}
+.radio-item{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px}
+.seg-ctrl{display:inline-flex;border:1px solid var(--border-md);border-radius:6px;overflow:hidden}
+.seg-btn{padding:6px 14px;cursor:pointer;font-size:12px;background:none;border:none;color:var(--text-sec);font-family:var(--font);transition:all .15s}
+.seg-btn.active{background:var(--accent);color:#fff}
+/* Inplace edit */
+[contenteditable="true"]{outline:none;border-bottom:1px solid var(--accent-hover);min-width:60px;display:inline-block}
+/* Section header */
+.section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.section-hdr h2{font-size:15px;font-weight:700;flex:1}
+/* Proposal card */
+.proposal-card{border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:10px;background:var(--surface)}
+.proposal-card.accepted{border-color:var(--success-border);background:var(--success-bg)}
+.proposal-card.rejected{opacity:0.4;pointer-events:none}
+.proposal-field{font-size:11px;color:var(--text-sec);margin-top:4px}
+.proposal-field span{color:var(--text-pri)}
+</style>
+</head>
+<body>
+<!-- Header -->
+<header id="header">
+  <button class="hbtn" id="sidebarToggle" title="Toggle sidebar">☰</button>
+  <div class="logo" onclick="navigate('dashboard')">RETS <span>MODULE-05</span></div>
+  <div class="spacer"></div>
+  <button class="hbtn" id="langBtn" onclick="toggleLang()">EN</button>
+  <button class="hbtn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+  <button class="hbtn" onclick="navigate('settings')">⚙</button>
+</header>
+<div id="layout">
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div class="nav-item active" data-view="dashboard" onclick="navigate('dashboard')"><span class="icon">📊</span><span class="nav-label" data-i18n="nav_dash">대시보드</span></div>
+    <div class="nav-item" data-view="requirements" onclick="navigate('requirements')"><span class="icon">📋</span><span class="nav-label" data-i18n="nav_req">요구사항 목록</span></div>
+    <div class="nav-item" data-view="testcases" onclick="navigate('testcases')"><span class="icon">🧪</span><span class="nav-label" data-i18n="nav_tc">테스트케이스</span></div>
+    <div class="nav-item" data-view="matrix" onclick="navigate('matrix')"><span class="icon">🔗</span><span class="nav-label" data-i18n="nav_matrix">추적 매트릭스</span></div>
+    <div class="nav-item" data-view="graph" onclick="navigate('graph')"><span class="icon">🕸</span><span class="nav-label" data-i18n="nav_graph">그래프 시각화</span></div>
+    <div class="nav-item" data-view="change" onclick="navigate('change')"><span class="icon">⚠️</span><span class="nav-label" data-i18n="nav_change">변경 영향 분석</span><span class="nav-badge" id="changeBadge" style="display:none">0</span></div>
+    <div class="nav-item" data-view="export" onclick="navigate('export')"><span class="icon">📤</span><span class="nav-label" data-i18n="nav_export">파일 출력</span></div>
+    <div class="nav-item" data-view="settings" onclick="navigate('settings')"><span class="icon">⚙️</span><span class="nav-label" data-i18n="nav_settings">설정</span></div>
+  </nav>
+  <!-- Main content -->
+  <main id="main"></main>
+</div>
+<!-- Hidden file input -->
+<input type="file" id="jsonInput" accept=".json" style="display:none" onchange="handleFileLoad(event)">
+
+<script>
+// ===== i18n =====
+const I18N = {
+  ko: {
+    nav_dash:'대시보드', nav_req:'요구사항 목록', nav_tc:'테스트케이스 관리',
+    nav_matrix:'추적 매트릭스', nav_graph:'그래프 시각화', nav_change:'변경 영향 분석',
+    nav_export:'파일 출력', nav_settings:'설정',
+    load_json:'JSON 불러오기', add:'추가', generate_tc:'TC 생성', re_generate:'재생성',
+    accept:'수락', reject:'거부', save:'저장', reset:'초기화',
+    coverage:'커버리지', total_req:'총 요구사항', total_tc:'총 TC 수', changed_req:'변경 요구사항',
+    run_analysis:'변경 분석 실행', export_tc_csv:'TC CSV 내보내기', export_matrix_csv:'매트릭스 CSV 내보내기',
+    team_id_label:'Team ID', lang_label:'언어', theme_label:'테마', light:'라이트', dark:'다크',
+    drop_hint:'JSON 파일을 끌어다 놓거나 클릭하여 선택하세요', drop_hint2:'rets_02c_req_schema.json DEV 타입 형식',
+    loading:'처리 중…', llm_generating:'LLM이 테스트케이스를 생성 중입니다…',
+    llm_analyzing:'LLM이 변경 영향을 분석 중입니다…',
+    session_init:'LLM 세션 초기화 중…', session_ok:'LLM 세션 준비 완료',
+    parse_err:'JSON 파싱 오류: ', schema_err:'스키마 오류: ',
+    no_req:'요구사항을 먼저 불러오세요', no_tc:'TC가 없습니다',
+    no_mapping:'매핑이 없습니다', no_changed:'변경된 요구사항이 없습니다',
+    team_required:'team_id를 설정 화면에서 먼저 입력해주세요',
+    retry:'재시도', delete:'삭제', add_tc:'TC 추가',
+    select_req:'요구사항을 선택하세요', proposals:'LLM 제안 목록', confirmed:'확정 TC 목록',
+    change_flag:'변경 플래그', set:'설정', clear:'해제',
+    recommendation:'권고', rationale:'근거', keep:'유지', update:'수정', deprecate:'폐기', add_new:'신규 추가',
+    loaded_ok:'건 로드 완료', req_id:'요구사항 ID', req_name:'요구사항명',
+    func_class:'구분', priority:'우선순위', status:'상태', scenario_type:'시나리오 유형',
+    title:'제목', precondition:'전제조건', input:'입력', steps:'절차', expected:'예상결과',
+    actions:'작업', not_set:'미설정', type:'유형', focus_mode:'포커스 모드',
+    cluster:'클러스터링', reset_view:'보기 초기화', node_detail:'노드 상세',
+    all:'전체', functional:'기능', nonfunctional:'비기능',
+    tc_id:'TC ID', mapping_type:'매핑 유형', primary:'주요', secondary:'참조',
+    items:'건', export_guide:'테스트케이스 관리와 추적 매트릭스를 먼저 작성해주세요'
+  },
+  en: {
+    nav_dash:'Dashboard', nav_req:'Requirements', nav_tc:'Test Cases',
+    nav_matrix:'Trace Matrix', nav_graph:'Graph View', nav_change:'Change Analysis',
+    nav_export:'Export', nav_settings:'Settings',
+    load_json:'Load JSON', add:'Add', generate_tc:'Generate TC', re_generate:'Re-generate',
+    accept:'Accept', reject:'Reject', save:'Save', reset:'Reset',
+    coverage:'Coverage', total_req:'Total Req.', total_tc:'Total TC', changed_req:'Changed Req.',
+    run_analysis:'Run Analysis', export_tc_csv:'Export TC CSV', export_matrix_csv:'Export Matrix CSV',
+    team_id_label:'Team ID', lang_label:'Language', theme_label:'Theme', light:'Light', dark:'Dark',
+    drop_hint:'Drag & drop JSON file or click to select', drop_hint2:'rets_02c_req_schema.json DEV type',
+    loading:'Processing…', llm_generating:'LLM is generating test cases…',
+    llm_analyzing:'LLM is analyzing change impact…',
+    session_init:'Initializing LLM session…', session_ok:'LLM session ready',
+    parse_err:'JSON parse error: ', schema_err:'Schema error: ',
+    no_req:'Please load requirements first', no_tc:'No test cases',
+    no_mapping:'No mappings', no_changed:'No changed requirements',
+    team_required:'Please set team_id in settings first',
+    retry:'Retry', delete:'Delete', add_tc:'Add TC',
+    select_req:'Select a requirement', proposals:'LLM Proposals', confirmed:'Confirmed TCs',
+    change_flag:'Change Flag', set:'Set', clear:'Clear',
+    recommendation:'Recommendation', rationale:'Rationale', keep:'Keep', update:'Update', deprecate:'Deprecate', add_new:'Add New',
+    loaded_ok:' items loaded', req_id:'Req. ID', req_name:'Req. Name',
+    func_class:'Class', priority:'Priority', status:'Status', scenario_type:'Scenario',
+    title:'Title', precondition:'Precondition', input:'Input', steps:'Steps', expected:'Expected',
+    actions:'Actions', not_set:'Not set', type:'Type', focus_mode:'Focus Mode',
+    cluster:'Cluster', reset_view:'Reset View', node_detail:'Node Detail',
+    all:'All', functional:'Functional', nonfunctional:'Non-Functional',
+    tc_id:'TC ID', mapping_type:'Mapping', primary:'Primary', secondary:'Secondary',
+    items:' items', export_guide:'Please create test cases and mappings first'
+  }
+};
+function t(key){ return (I18N[S.config.language]||I18N.ko)[key]||key; }
+
+// ===== State =====
+const S = {
+  requirements:[],
+  testCases:[],
+  mappings:[],
+  changeRecs:[],
+  llmSessionId:null,
+  llmIniting:false,
+  config:{ team_id:'team2', language:'ko', theme:'light' },
+  ui:{ view:'dashboard', selectedReqId:null, tcTab:'proposals', proposals:[], graphFocusId:null }
+};
+
+// ===== LLM =====
+const RELAY = 'https://ai-relay.mooo.com:11443';
+const SYS_PROMPT = `당신은 사내 요구공학 도구 스위트 RETS(Requirements Engineering Tool Suite)의 요구공학 지능화 엔진이다. 사용자 프롬프트를 입력으로 받아, 요청한 요구공학 작업을 전문성있게 수행한 후, 사용자가 요청하는 작업을 매 요청에서 요구되는 JSON 형식에 정확하게 맞춰 반환하도록 한다.`;
+
+function parseLlmJson(text){
+  const cleaned = text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+  return JSON.parse(cleaned);
+}
+
+async function initSession(){
+  if(!S.config.team_id){ showToast(t('team_required'),'error'); return false; }
+  if(S.llmIniting) return false;
+  S.llmIniting = true;
+  showLoading(t('session_init'));
+  try{
+    const r = await fetch(`${RELAY}/chat/new`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({team_id:S.config.team_id, system_prompt:SYS_PROMPT})
+    });
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    S.llmSessionId = d.session_id;
+    hideLoading();
+    showToast(t('session_ok'),'success');
+    return true;
+  }catch(e){
+    hideLoading();
+    showToast('LLM 세션 초기화 실패: '+e.message,'error');
+    return false;
+  }finally{ S.llmIniting=false; }
+}
+
+async function sendMessage(msg){
+  if(!S.llmSessionId){ const ok=await initSession(); if(!ok) throw new Error('no session'); }
+  const r = await fetch(`${RELAY}/chat/${S.llmSessionId}`,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({team_id:S.config.team_id, message:msg})
+  });
+  if(!r.ok) throw new Error(`HTTP ${r.status}`);
+  const d = await r.json();
+  return d.response;
+}
+
+// ===== LLM Actions =====
+async function llmGenerateTC(req){
+  if(!S.config.team_id){ showToast(t('team_required'),'error'); return; }
+  if(!S.llmSessionId){ const ok=await initSession(); if(!ok) return; }
+  showLoading(t('llm_generating'));
+  const prompt = `다음 요구사항에 대해 테스트케이스를 생성하라.
+
+요구사항 ID: ${req.req_id}
+요구사항명: ${req.req_name}
+설명: ${req.description}
+우선순위: ${req.priority||''}
+인수 기준: ${(req.acceptance_criteria||[]).join('; ')}
+
+## Output Format (STRICT JSON ONLY)
+반드시 아래 JSON 스키마만 출력하라. 설명·마크다운·코드 펜스는 포함하지 말 것.
+{
+  "testcases": [
+    {
+      "scenario_type": "Normal|Exception|Boundary",
+      "title": "<테스트 제목>",
+      "precondition": "<Given: 전제조건>",
+      "input": "<When: 입력값 또는 사용자 액션>",
+      "steps": "<수행 절차>",
+      "expected_result": "<Then: 예상결과>"
+    }
+  ]
+}
+정상(Normal) 1건 이상, 예외(Exception) 1건 이상, 경계값(Boundary) 1건 이상 포함할 것.`;
+  let retries=0;
+  while(retries<3){
+    try{
+      const raw = await sendMessage(prompt);
+      const parsed = parseLlmJson(raw);
+      if(!parsed.testcases||!Array.isArray(parsed.testcases)) throw new Error('invalid schema');
+      hideLoading();
+      S.ui.proposals = parsed.testcases.map((tc,i)=>({
+        _id:'PROP-'+Date.now()+'-'+i,
+        source_req_id:req.req_id,
+        scenario_type:tc.scenario_type||'Normal',
+        title:tc.title||'',
+        precondition:tc.precondition||'',
+        input:tc.input||'',
+        steps:tc.steps||'',
+        expected_result:tc.expected_result||'',
+        status:'draft'
+      }));
+      S.ui.tcTab='proposals';
+      renderView();
+      return;
+    }catch(e){
+      retries++;
+      if(retries>=3){ hideLoading(); showToast('LLM 응답 파싱 실패: '+e.message,'error'); return; }
+    }
+  }
+}
+
+async function llmChangeAnalysis(reqIds){
+  if(!S.config.team_id){ showToast(t('team_required'),'error'); return; }
+  if(!S.llmSessionId){ const ok=await initSession(); if(!ok) return; }
+  showLoading(t('llm_analyzing'));
+  const affectedMappings = S.mappings.filter(m=>reqIds.includes(m.req_id));
+  if(!affectedMappings.length){ hideLoading(); showToast(t('no_mapping'),'error'); return; }
+  const items = affectedMappings.map(m=>{
+    const tc = S.testCases.find(t=>t.tc_id===m.tc_id);
+    const req = S.requirements.find(r=>r.req_id===m.req_id);
+    return `- 요구사항: ${req?.req_name||m.req_id} / TC: ${tc?.title||m.tc_id}`;
+  }).join('\n');
+  const prompt = `다음 요구사항들이 변경되었다. 각 테스트케이스(TC)에 대한 권고안을 제시하라.
+
+변경된 요구사항: ${reqIds.join(', ')}
+영향받는 요구사항-TC 매핑:\n${items}
+
+## Output Format (STRICT JSON ONLY)
+{
+  "recommendations": [
+    {
+      "req_id": "<요구사항 ID>",
+      "tc_id": "<TC ID>",
+      "recommendation": "Keep|Update|Deprecate|Add_New",
+      "rationale": "<권고 근거 (1~2문장)>"
+    }
+  ]
+}`;
+  try{
+    const raw = await sendMessage(prompt);
+    const parsed = parseLlmJson(raw);
+    if(!parsed.recommendations||!Array.isArray(parsed.recommendations)) throw new Error('invalid');
+    S.changeRecs = parsed.recommendations.map((r,i)=>({
+      rec_id:'REC-'+String(i+1).padStart(5,'0'),
+      changed_req_id:r.req_id, affected_tc_id:r.tc_id,
+      recommendation:r.recommendation, rationale:r.rationale, status:'Pending',
+      created_at:new Date().toISOString()
+    }));
+    hideLoading();
+    renderView();
+  }catch(e){ hideLoading(); showToast('분석 오류: '+e.message,'error'); }
+}
+
+// ===== File I/O =====
+function handleFileLoad(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      const arr=Array.isArray(data)?data:(data.requirements||[]);
+      const dev=arr.filter(r=>r.req_type==='DEV');
+      if(!dev.length){ showToast(t('schema_err')+'DEV 타입 요구사항 없음','error'); return; }
+      S.requirements=dev.map(r=>({...r,is_changed:false}));
+      S.testCases=[]; S.mappings=[]; S.changeRecs=[]; S.llmSessionId=null; S.ui.proposals=[];
+      showToast(S.requirements.length+t('loaded_ok'),'success');
+      updateChangeBadge();
+      navigate('requirements');
+    }catch(ex){ showToast(t('parse_err')+ex.message,'error'); }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+function exportCSV(rows,filename){
+  const bom='﻿';
+  const csv=bom+rows.map(r=>r.map(c=>'"'+(String(c||'').replace(/"/g,'""'))+'"').join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=filename; a.click();
+}
+
+function exportTcCSV(){
+  if(!S.testCases.length){ showToast(t('no_tc'),'error'); return; }
+  const h=['tc_id','req_id','scenario_type','title','precondition','input','steps','expected_result','status'];
+  const rows=[h,...S.testCases.map(tc=>[tc.tc_id,tc.source_req_id,tc.scenario_type,tc.title,tc.precondition,tc.input,tc.steps,tc.expected_result,tc.status])];
+  exportCSV(rows,'rets_module_05_tc_list.csv');
+  showToast('TC CSV 내보내기 완료','success');
+}
+
+function exportMatrixCSV(){
+  if(!S.mappings.length){ showToast(t('no_mapping'),'error'); return; }
+  const h=['req_id','req_name','tc_id','tc_title','mapping_type'];
+  const rows=[h,...S.mappings.map(m=>{
+    const req=S.requirements.find(r=>r.req_id===m.req_id);
+    const tc=S.testCases.find(t=>t.tc_id===m.tc_id);
+    return [m.req_id,req?.req_name||'',m.tc_id,tc?.title||'',m.mapping_type];
+  })];
+  exportCSV(rows,'rets_module_05_trace_matrix.csv');
+  showToast('추적 매트릭스 CSV 내보내기 완료','success');
+}
+
+// ===== TC helpers =====
+let tcSeq=0;
+function newTcId(req_id){ tcSeq++; return 'TC-'+req_id+'-'+String(tcSeq).padStart(3,'0'); }
+let mapSeq=0;
+function newMapId(){ mapSeq++; return 'MAP-'+String(mapSeq).padStart(5,'0'); }
+
+function acceptProposal(prop){
+  const tc={
+    tc_id:newTcId(prop.source_req_id),
+    source_req_id:prop.source_req_id,
+    scenario_type:prop.scenario_type,
+    title:prop.title, precondition:prop.precondition,
+    input:prop.input, steps:prop.steps, expected_result:prop.expected_result,
+    status:'Accepted', source:'LLM', created_at:new Date().toISOString()
+  };
+  S.testCases.push(tc);
+  const exists=S.mappings.find(m=>m.req_id===prop.source_req_id&&m.tc_id===tc.tc_id);
+  if(!exists) S.mappings.push({mapping_id:newMapId(),req_id:prop.source_req_id,tc_id:tc.tc_id,mapping_type:'primary',created_at:new Date().toISOString()});
+  prop.status='accepted';
+  renderView();
+}
+function rejectProposal(prop){ prop.status='rejected'; renderView(); }
+function addManualTC(){
+  const req=S.ui.selectedReqId;
+  if(!req){ showToast(t('select_req'),'error'); return; }
+  const tc={tc_id:newTcId(req),source_req_id:req,scenario_type:'Normal',title:'새 테스트케이스',precondition:'',input:'',steps:'',expected_result:'',status:'Accepted',source:'Manual',created_at:new Date().toISOString()};
+  S.testCases.push(tc);
+  S.mappings.push({mapping_id:newMapId(),req_id:req,tc_id:tc.tc_id,mapping_type:'primary',created_at:new Date().toISOString()});
+  S.ui.tcTab='confirmed';
+  renderView();
+}
+function deleteTC(tcId){
+  if(!confirm('TC를 삭제하시겠습니까?')) return;
+  S.testCases=S.testCases.filter(t=>t.tc_id!==tcId);
+  S.mappings=S.mappings.filter(m=>m.tc_id!==tcId);
+  renderView();
+}
+function toggleMapping(reqId,tcId){
+  const idx=S.mappings.findIndex(m=>m.req_id===reqId&&m.tc_id===tcId);
+  if(idx>=0) S.mappings.splice(idx,1);
+  else S.mappings.push({mapping_id:newMapId(),req_id:reqId,tc_id:tcId,mapping_type:'primary',created_at:new Date().toISOString()});
+  renderView();
+}
+function toggleChangeFlag(reqId){
+  const r=S.requirements.find(r=>r.req_id===reqId);
+  if(r){ r.is_changed=!r.is_changed; updateChangeBadge(); renderView(); }
+}
+function updateChangeBadge(){
+  const n=S.requirements.filter(r=>r.is_changed).length;
+  const b=document.getElementById('changeBadge');
+  if(b){ b.textContent=n; b.style.display=n>0?'inline':'none'; }
+}
+function applyRec(rec,accept){
+  rec.status=accept?'Accepted':'Rejected';
+  if(accept){
+    const tc=S.testCases.find(t=>t.tc_id===rec.affected_tc_id);
+    if(tc){
+      if(rec.recommendation==='Keep') tc.status='Accepted';
+      else if(rec.recommendation==='Update') tc.status='Needs_Update';
+      else if(rec.recommendation==='Deprecate') tc.status='Deprecated';
+      else if(rec.recommendation==='Add_New') tc.status='Draft';
+    }
+  }
+  renderView();
+}
+
+// ===== Coverage =====
+function getCoverage(){
+  if(!S.requirements.length) return {pct:0,covered:0,total:0};
+  const covered=new Set(S.mappings.map(m=>m.req_id)).size;
+  const total=S.requirements.length;
+  return {pct:Math.round(covered/total*100),covered,total};
+}
+
+// ===== Navigation =====
+function navigate(view){
+  S.ui.view=view;
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.classList.toggle('active',el.dataset.view===view);
+  });
+  renderView();
+}
+
+function renderView(){
+  const main=document.getElementById('main');
+  switch(S.ui.view){
+    case 'dashboard':   main.innerHTML=viewDashboard(); break;
+    case 'requirements':main.innerHTML=viewRequirements(); break;
+    case 'testcases':   main.innerHTML=viewTestCases(); break;
+    case 'matrix':      main.innerHTML=viewMatrix(); break;
+    case 'graph':       main.innerHTML=viewGraph(); setTimeout(renderGraph,50); break;
+    case 'change':      main.innerHTML=viewChange(); break;
+    case 'export':      main.innerHTML=viewExport(); break;
+    case 'settings':    main.innerHTML=viewSettings(); break;
+  }
+  applyI18n();
+}
+
+// ===== Views =====
+function badge(cls,text){ return `<span class="badge badge-${cls.toLowerCase()}">${text}</span>`; }
+
+function viewDashboard(){
+  const cv=getCoverage();
+  const changed=S.requirements.filter(r=>r.is_changed).length;
+  const activity=getActivity();
+  return `<div class="section-hdr"><h2>📊 <span data-i18n="nav_dash"></span></h2>
+  <button class="btn btn-primary btn-sm" onclick="document.getElementById('jsonInput').click()">📂 <span data-i18n="load_json"></span></button></div>
+  <div class="stat-grid">
+    <div class="stat-card" onclick="navigate('requirements')"><div class="val">${S.requirements.length}</div><div class="lbl" data-i18n="total_req"></div></div>
+    <div class="stat-card" onclick="navigate('testcases')"><div class="val">${S.testCases.length}</div><div class="lbl" data-i18n="total_tc"></div></div>
+    <div class="stat-card" onclick="navigate('matrix')"><div class="val">${cv.pct}%</div><div class="lbl" data-i18n="coverage"></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:8px"><div class="progress-wrap"><div class="progress-bar" style="width:${cv.pct}%"></div></div></div>
+    </div>
+    <div class="stat-card ${changed>0?'warn-card':''}" onclick="navigate('change')"><div class="val">${changed}</div><div class="lbl" data-i18n="changed_req"></div></div>
+  </div>
+  <div class="card"><div class="card-title">⚡ 빠른 실행</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="document.getElementById('jsonInput').click()">📂 <span data-i18n="load_json"></span></button>
+      <button class="btn btn-outline" onclick="navigate('testcases')">🧪 <span data-i18n="generate_tc"></span></button>
+      <button class="btn btn-outline" onclick="exportTcCSV()">📤 TC CSV</button>
+      <button class="btn btn-outline" onclick="exportMatrixCSV()">📤 매트릭스 CSV</button>
+      ${!S.llmSessionId?`<button class="btn btn-outline" onclick="initSession()">🤖 LLM 세션 초기화</button>`:'<span style="color:var(--success);font-size:12px">✓ LLM 세션 활성</span>'}
+    </div>
+  </div>
+  ${activity?`<div class="card" style="margin-top:12px"><div class="card-title">📝 최근 활동</div>${activity}</div>`:''}`;
+}
+
+function getActivity(){
+  const items=[];
+  S.testCases.slice(-5).reverse().forEach(tc=>{ items.push(`<div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)">🧪 TC 생성: <b>${tc.tc_id}</b> — ${tc.title.slice(0,40)}</div>`); });
+  return items.join('')||'';
+}
+
+function viewRequirements(){
+  const reqs=S.requirements;
+  if(!reqs.length) return `<div class="section-hdr"><h2>📋 <span data-i18n="nav_req"></span></h2>
+    <button class="btn btn-primary" onclick="document.getElementById('jsonInput').click()">📂 <span data-i18n="load_json"></span></button></div>
+    <div class="drop-zone" onclick="document.getElementById('jsonInput').click()" id="dropZone">
+      <div style="font-size:36px">📂</div><p data-i18n="drop_hint"></p><p data-i18n="drop_hint2"></p>
+    </div>`;
+  return `<div class="section-hdr"><h2>📋 <span data-i18n="nav_req"></span></h2>
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('jsonInput').click()">📂 <span data-i18n="load_json"></span></button>
+    <span style="font-size:11px;color:var(--text-sec)">${reqs.length}<span data-i18n="items"></span></span>
+  </div>
+  <div class="card" style="padding:0;overflow:auto">
+    <table class="tbl">
+      <thead><tr><th style="width:32px"></th><th data-i18n="req_id"></th><th data-i18n="req_name"></th><th data-i18n="func_class"></th><th data-i18n="priority"></th><th data-i18n="status"></th><th data-i18n="actions"></th></tr></thead>
+      <tbody>${reqs.map(r=>{
+        const ind='indent-'+Math.min(r.req_level||1,5);
+        return `<tr class="${r.is_changed?'changed-row':''}">
+          <td><span style="cursor:pointer;font-size:14px" title="${t('change_flag')}" onclick="toggleChangeFlag('${r.req_id}')">${r.is_changed?'🔴':'⭕'}</span></td>
+          <td class="mono ${ind}" title="${r.req_id}">${r.req_id}</td>
+          <td style="max-width:280px">${r.req_name||''}</td>
+          <td>${badge(r.functional_class==='기능'?'accepted':'info',r.functional_class||'')}</td>
+          <td>${r.priority?badge(r.priority.toLowerCase(),r.priority):''}</td>
+          <td><span class="badge badge-${(r.req_status||'').toLowerCase()}">${r.req_status||''}</span></td>
+          <td><button class="btn btn-primary btn-sm" onclick="selectReqAndGen('${r.req_id}')">🧪 TC</button></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+function selectReqAndGen(reqId){
+  S.ui.selectedReqId=reqId;
+  navigate('testcases');
+  const req=S.requirements.find(r=>r.req_id===reqId);
+  if(req) setTimeout(()=>llmGenerateTC(req),100);
+}
+
+function viewTestCases(){
+  const reqs=S.requirements;
+  const selReq=reqs.find(r=>r.req_id===S.ui.selectedReqId)||reqs[0];
+  const filteredTCs=S.testCases.filter(tc=>!selReq||tc.source_req_id===selReq?.req_id);
+  return `<div class="section-hdr"><h2>🧪 <span data-i18n="nav_tc"></span></h2></div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:12px">
+    <div>
+      <div class="card" style="padding:10px">
+        <div style="font-size:11px;font-weight:600;color:var(--text-sec);margin-bottom:8px" data-i18n="select_req"></div>
+        <div style="max-height:400px;overflow-y:auto">
+          ${reqs.length?reqs.map(r=>`<div style="padding:6px 8px;border-radius:4px;cursor:pointer;font-size:11px;margin-bottom:2px;background:${r.req_id===S.ui.selectedReqId?'var(--accent-light)':''};color:${r.req_id===S.ui.selectedReqId?'var(--accent)':''};border-left:2px solid ${r.req_id===S.ui.selectedReqId?'var(--accent)':'transparent'}"
+            onclick="S.ui.selectedReqId='${r.req_id}';S.ui.proposals=[];renderView()"
+            title="${r.req_id}">
+            <div style="font-size:10px;color:var(--text-sec)">${r.req_id}</div>
+            <div>${(r.req_name||'').slice(0,28)}</div>
+          </div>`).join(''):`<p style="font-size:11px;color:var(--text-sec)" data-i18n="no_req"></p>`}
+        </div>
+      </div>
+    </div>
+    <div>
+      ${selReq?`<div class="card" style="margin-bottom:10px;padding:10px 14px">
+        <div style="font-size:11px;color:var(--text-sec)">${selReq.req_id}</div>
+        <div style="font-weight:600">${selReq.req_name}</div>
+        <div style="font-size:11px;color:var(--text-sec);margin-top:4px">${(selReq.description||'').slice(0,120)}${selReq.description?.length>120?'…':''}</div>
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="llmGenerateTC(S.requirements.find(r=>r.req_id==='${selReq.req_id}'))">🤖 <span data-i18n="generate_tc"></span></button>
+          <button class="btn btn-outline btn-sm" onclick="addManualTC()">+ <span data-i18n="add_tc"></span></button>
+        </div>
+      </div>`:''}
+      <div class="tabs">
+        <div class="tab ${S.ui.tcTab==='proposals'?'active':''}" onclick="S.ui.tcTab='proposals';renderView()" data-i18n="proposals"></div>
+        <div class="tab ${S.ui.tcTab==='confirmed'?'active':''}" onclick="S.ui.tcTab='confirmed';renderView()" data-i18n="confirmed"></div>
+      </div>
+      ${S.ui.tcTab==='proposals'?renderProposals():renderConfirmedTCs(filteredTCs)}
+    </div>
+  </div>`;
+}
+
+function renderProposals(){
+  if(!S.ui.proposals.length) return `<div style="text-align:center;padding:32px;color:var(--text-sec);font-size:13px">LLM TC 생성 버튼을 클릭하세요</div>`;
+  return S.ui.proposals.map(p=>`
+    <div class="proposal-card ${p.status}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        ${badge(p.scenario_type,p.scenario_type)}
+        <span style="font-weight:600;font-size:13px">${p.title}</span>
+      </div>
+      <div class="proposal-field"><b>Given:</b> <span>${p.precondition||'-'}</span></div>
+      <div class="proposal-field"><b>When:</b> <span>${p.input||'-'}</span></div>
+      <div class="proposal-field"><b>Steps:</b> <span>${p.steps||'-'}</span></div>
+      <div class="proposal-field"><b>Then:</b> <span>${p.expected_result||'-'}</span></div>
+      ${p.status==='draft'?`<div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-success btn-sm" onclick="acceptProposalById('${p._id}')">✓ <span data-i18n="accept"></span></button>
+        <button class="btn btn-danger btn-sm" onclick="rejectProposalById('${p._id}')">✗ <span data-i18n="reject"></span></button>
+      </div>`:`<div style="margin-top:8px"><span class="badge badge-${p.status}">${p.status==='accepted'?'✓ 수락됨':'✗ 거부됨'}</span></div>`}
+    </div>`).join('');
+}
+
+function acceptProposalById(id){ const p=S.ui.proposals.find(p=>p._id===id); if(p) acceptProposal(p); }
+function rejectProposalById(id){ const p=S.ui.proposals.find(p=>p._id===id); if(p) rejectProposal(p); }
+
+function renderConfirmedTCs(tcs){
+  if(!tcs.length) return `<div style="text-align:center;padding:32px;color:var(--text-sec);font-size:13px" data-i18n="no_tc"></div>`;
+  return `<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>TC ID</th><th data-i18n="scenario_type"></th><th data-i18n="title"></th><th data-i18n="expected"></th><th data-i18n="status"></th><th></th></tr></thead>
+    <tbody>${tcs.map(tc=>`<tr>
+      <td class="mono">${tc.tc_id}</td>
+      <td>${badge(tc.scenario_type,tc.scenario_type)}</td>
+      <td contenteditable="true" onblur="updateTcField('${tc.tc_id}','title',this.textContent)" style="min-width:140px">${tc.title}</td>
+      <td contenteditable="true" onblur="updateTcField('${tc.tc_id}','expected_result',this.textContent)" style="min-width:140px">${tc.expected_result}</td>
+      <td><span class="badge badge-${(tc.status||'').toLowerCase().replace('_','-')}">${tc.status}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="deleteTC('${tc.tc_id}')">🗑</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+function updateTcField(tcId,field,val){ const tc=S.testCases.find(t=>t.tc_id===tcId); if(tc) tc[field]=val; }
+
+function viewMatrix(){
+  const reqs=S.requirements;
+  const tcs=S.testCases;
+  if(!reqs.length) return `<div class="section-hdr"><h2>🔗 <span data-i18n="nav_matrix"></span></h2></div><p style="color:var(--text-sec)" data-i18n="no_req"></p>`;
+  const cv=getCoverage();
+  const changedReqIds=S.requirements.filter(r=>r.is_changed).map(r=>r.req_id);
+  return `<div class="section-hdr"><h2>🔗 <span data-i18n="nav_matrix"></span></h2>
+    <div style="display:flex;align-items:center;gap:8px;flex:1">
+      <span style="font-size:12px;color:var(--text-sec)" data-i18n="coverage"></span>
+      <div class="progress-wrap" style="max-width:160px"><div class="progress-bar" style="width:${cv.pct}%"></div></div>
+      <span style="font-size:12px;font-weight:600">${cv.pct}% (${cv.covered}/${cv.total})</span>
+    </div>
+  </div>
+  <div class="card" style="padding:0"><div class="matrix-wrap">
+    <table class="tbl matrix-tbl">
+      <thead><tr><th style="min-width:160px;writing-mode:initial;transform:none;text-align:left;padding:8px 10px" data-i18n="req_name"></th>
+        ${tcs.map(tc=>`<th title="${tc.tc_id}\n${tc.title}">${tc.tc_id.split('-').pop()}</th>`).join('')}
+        <th style="writing-mode:initial;transform:none" data-i18n="coverage"></th>
+      </tr></thead>
+      <tbody>${reqs.map(req=>{
+        const reqTcs=S.mappings.filter(m=>m.req_id===req.req_id).map(m=>m.tc_id);
+        const cv2=tcs.length?reqTcs.length+'/'+tcs.length:'0/0';
+        const hl=changedReqIds.includes(req.req_id);
+        return `<tr style="${hl?'background:var(--warn-bg)':''}">
+          <td style="font-size:11px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${req.req_id}">${req.req_name}</td>
+          ${tcs.map(tc=>`<td class="matrix-cell${reqTcs.includes(tc.tc_id)?' mapped':''}${hl?' hl':''}" onclick="toggleMapping('${req.req_id}','${tc.tc_id}')" title="${req.req_id} ↔ ${tc.tc_id}">${reqTcs.includes(tc.tc_id)?'✓':''}</td>`).join('')}
+          <td style="font-size:11px;color:var(--text-sec);white-space:nowrap">${cv2}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  </div></div>`;
+}
+
+function viewGraph(){ return `<div class="section-hdr"><h2>🕸 <span data-i18n="nav_graph"></span></h2>
+  <button class="btn btn-outline btn-sm" id="focusBtn" onclick="clearFocus()" data-i18n="focus_mode"></button>
+  <button class="btn btn-ghost btn-sm" onclick="resetGraphView()" data-i18n="reset_view"></button></div>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <span style="font-size:11px;color:var(--text-sec)">범례:</span>
+    <span style="font-size:11px;color:var(--info)">■ 요구사항</span>
+    <span style="font-size:11px;color:var(--accent)">● 시나리오</span>
+    <span style="font-size:11px;color:var(--success)">◆ TC</span>
+  </div>
+  <div id="graph-canvas"></div>
+  <div id="node-detail" style="margin-top:10px;font-size:12px;color:var(--text-sec)"></div>`; }
+
+function renderGraph(){
+  const el=document.getElementById('graph-canvas'); if(!el) return;
+  el.innerHTML='';
+  const w=el.clientWidth||800, h=500;
+  const nodes=[], links=[];
+  S.requirements.forEach(r=>nodes.push({id:r.req_id,label:r.req_id,name:r.req_name,type:'req'}));
+  S.testCases.forEach(tc=>{
+    nodes.push({id:tc.tc_id,label:tc.tc_id.split('-').pop(),name:tc.title,type:'tc'});
+    if(!nodes.find(n=>n.id==='SC-'+tc.source_req_id+'-'+tc.scenario_type)){
+      nodes.push({id:'SC-'+tc.source_req_id+'-'+tc.scenario_type,label:tc.scenario_type.slice(0,3),name:tc.scenario_type,type:'scenario'});
+    }
+    links.push({source:tc.source_req_id,target:'SC-'+tc.source_req_id+'-'+tc.scenario_type,type:'req-sc'});
+    links.push({source:'SC-'+tc.source_req_id+'-'+tc.scenario_type,target:tc.tc_id,type:'sc-tc'});
+  });
+  if(!nodes.length){el.innerHTML='<div style="text-align:center;padding:60px;color:var(--text-sec)">데이터가 없습니다</div>';return;}
+  const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width',w).attr('height',h);
+  const g=svg.append('g');
+  svg.call(d3.zoom().scaleExtent([0.3,3]).on('zoom',e=>g.attr('transform',e.transform)));
+  const sim=d3.forceSimulation(nodes)
+    .force('link',d3.forceLink(links).id(d=>d.id).distance(80))
+    .force('charge',d3.forceManyBody().strength(-200))
+    .force('center',d3.forceCenter(w/2,h/2))
+    .force('collision',d3.forceCollide(30));
+  const link=g.append('g').selectAll('line').data(links).join('line').attr('class','link');
+  const node=g.append('g').selectAll('g').data(nodes).join('g').attr('class','node')
+    .call(d3.drag().on('start',(e,d)=>{if(!e.active)sim.alphaTarget(0.3).restart();d.fx=d.x;d.fy=d.y;})
+      .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
+      .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}))
+    .on('click',(e,d)=>{
+      S.ui.graphFocusId=S.ui.graphFocusId===d.id?null:d.id;
+      const detail=document.getElementById('node-detail');
+      if(detail&&S.ui.graphFocusId){
+        const connected=links.filter(l=>(l.source.id||l.source)===d.id||(l.target.id||l.target)===d.id).map(l=>(l.source.id||l.source)===(d.id)?l.target.id||l.target:l.source.id||l.source);
+        detail.innerHTML=`<b>${d.label}</b>: ${d.name} | 연결: ${connected.join(', ')}`;
+      } else if(detail) detail.innerHTML='';
+      node.classed('dimmed',dd=>S.ui.graphFocusId&&dd.id!==S.ui.graphFocusId&&!links.some(l=>((l.source.id||l.source)===S.ui.graphFocusId&&(l.target.id||l.target)===dd.id)||((l.target.id||l.target)===S.ui.graphFocusId&&(l.source.id||l.source)===dd.id)));
+    });
+  // Draw shapes by type
+  node.each(function(d){
+    const g2=d3.select(this);
+    if(d.type==='req') g2.append('rect').attr('x',-40).attr('y',-14).attr('width',80).attr('height',28).attr('rx',4).attr('fill','var(--info-bg)').attr('stroke','var(--info)').attr('stroke-width',1.5);
+    else if(d.type==='scenario') g2.append('circle').attr('r',16).attr('fill','var(--accent)').attr('opacity',0.9);
+    else if(d.type==='tc'){ const s=14; g2.append('polygon').attr('points',`0,${-s} ${s},0 0,${s} ${-s},0`).attr('fill','var(--success-bg)').attr('stroke','var(--success)').attr('stroke-width',1.5); }
+    g2.append('text').attr('text-anchor','middle').attr('dy','0.35em').attr('font-size','9px').attr('fill','var(--text-pri)').text(d.label.slice(0,10));
+  });
+  sim.on('tick',()=>{
+    link.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    node.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+}
+function clearFocus(){ S.ui.graphFocusId=null; d3.selectAll('.node').classed('dimmed',false); const d=document.getElementById('node-detail');if(d)d.innerHTML=''; }
+function resetGraphView(){ renderGraph(); }
+
+function viewChange(){
+  const changedReqs=S.requirements.filter(r=>r.is_changed);
+  return `<div class="section-hdr"><h2>⚠️ <span data-i18n="nav_change"></span></h2>
+    ${changedReqs.length?`<button class="btn btn-primary" onclick="runChangeAnalysis()" data-i18n="run_analysis"></button>`:''}
+  </div>
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:12px">
+    <div class="card" style="padding:10px">
+      <div style="font-size:11px;font-weight:600;color:var(--text-sec);margin-bottom:8px">변경된 요구사항</div>
+      ${S.requirements.length?S.requirements.map(r=>`<div style="display:flex;align-items:center;gap:6px;padding:5px;border-radius:4px;margin-bottom:2px;font-size:11px;background:${r.is_changed?'var(--warn-bg)':''}">
+          <span style="cursor:pointer" onclick="toggleChangeFlag('${r.req_id}')" title="${t('change_flag')}">${r.is_changed?'🔴':'⭕'}</span>
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.req_id}">${r.req_name||r.req_id}</span>
+        </div>`).join(''):`<p style="font-size:11px;color:var(--text-sec)" data-i18n="no_req"></p>`}
+    </div>
+    <div>
+      ${!changedReqs.length?`<div style="text-align:center;padding:32px;color:var(--text-sec)" data-i18n="no_changed"></div>`:
+      S.changeRecs.length?renderChangeRecs():`<div style="text-align:center;padding:32px;color:var(--text-sec)"><p>변경 분석을 실행하세요</p><button class="btn btn-primary" style="margin-top:10px" onclick="runChangeAnalysis()" data-i18n="run_analysis"></button></div>`}
+    </div>
+  </div>`;
+}
+function renderChangeRecs(){
+  return S.changeRecs.map(rec=>`
+    <div class="rec-card ${rec.status.toLowerCase()}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        ${badge(rec.recommendation,rec.recommendation)}
+        <span style="font-size:11px;color:var(--text-sec)">${rec.affected_tc_id}</span>
+        <span class="badge badge-${rec.status.toLowerCase()}" style="margin-left:auto">${rec.status}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-sec)">${rec.rationale}</div>
+      ${rec.status==='Pending'?`<div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-success btn-sm" onclick="applyRec(S.changeRecs.find(r=>r.rec_id==='${rec.rec_id}'),true)">✓ <span data-i18n="accept"></span></button>
+        <button class="btn btn-danger btn-sm" onclick="applyRec(S.changeRecs.find(r=>r.rec_id==='${rec.rec_id}'),false)">✗ <span data-i18n="reject"></span></button>
+      </div>`:''}
+    </div>`).join('');
+}
+function runChangeAnalysis(){
+  const ids=S.requirements.filter(r=>r.is_changed).map(r=>r.req_id);
+  if(!ids.length){ showToast(t('no_changed'),'error'); return; }
+  llmChangeAnalysis(ids);
+}
+
+function viewExport(){
+  return `<div class="section-hdr"><h2>📤 <span data-i18n="nav_export"></span></h2></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="card">
+      <div class="card-title">📄 테스트케이스 목록 CSV</div>
+      <div style="font-size:11px;color:var(--text-sec);margin-bottom:8px">파일명: rets_module_05_tc_list.csv</div>
+      <div style="font-size:11px;color:var(--text-sec);margin-bottom:12px">컬럼: tc_id, req_id, scenario_type, title, precondition, input, steps, expected_result, status</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">현재 TC: <span style="color:var(--accent)">${S.testCases.length}</span>건</div>
+      <button class="btn btn-primary" onclick="exportTcCSV()" data-i18n="export_tc_csv"></button>
+    </div>
+    <div class="card">
+      <div class="card-title">🔗 추적 매트릭스 CSV</div>
+      <div style="font-size:11px;color:var(--text-sec);margin-bottom:8px">파일명: rets_module_05_trace_matrix.csv</div>
+      <div style="font-size:11px;color:var(--text-sec);margin-bottom:12px">컬럼: req_id, req_name, tc_id, tc_title, mapping_type</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">현재 매핑: <span style="color:var(--accent)">${S.mappings.length}</span>건</div>
+      <button class="btn btn-primary" onclick="exportMatrixCSV()" data-i18n="export_matrix_csv"></button>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px;background:var(--info-bg);border-color:var(--info-border)">
+    <div style="font-size:12px;color:var(--info)">ℹ <span data-i18n="export_guide"></span></div>
+  </div>`;
+}
+
+function viewSettings(){
+  const c=S.config;
+  return `<div class="section-hdr"><h2>⚙️ <span data-i18n="nav_settings"></span></h2></div>
+  <div class="card" style="max-width:480px">
+    <div class="form-group">
+      <label class="form-label" data-i18n="team_id_label">Team ID *</label>
+      <input class="input" id="cfg_team_id" value="${c.team_id}" placeholder="team2" oninput="S.config.team_id=this.value;S.llmSessionId=null">
+      <div style="font-size:11px;color:var(--text-sec);margin-top:4px">LLM 호출에 사용할 팀 ID (기본값: team2)</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="lang_label"></label>
+      <div class="radio-group">
+        <label class="radio-item"><input type="radio" name="lang" value="ko" ${c.language==='ko'?'checked':''} onchange="setLang('ko')"> 한국어</label>
+        <label class="radio-item"><input type="radio" name="lang" value="en" ${c.language==='en'?'checked':''} onchange="setLang('en')"> English</label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" data-i18n="theme_label"></label>
+      <div class="seg-ctrl">
+        <button class="seg-btn ${c.theme==='light'?'active':''}" onclick="setTheme('light')" data-i18n="light"></button>
+        <button class="seg-btn ${c.theme==='dark'?'active':''}" onclick="setTheme('dark')" data-i18n="dark"></button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveSettings()" data-i18n="save"></button>
+      <button class="btn btn-ghost" onclick="resetSettings()" data-i18n="reset"></button>
+    </div>
+  </div>`;
+}
+function saveSettings(){ showToast('설정이 저장되었습니다','success'); }
+function resetSettings(){ S.config={team_id:'team2',language:'ko',theme:'light'}; setTheme('light'); setLang('ko'); renderView(); }
+function setLang(l){ S.config.language=l; document.getElementById('langBtn').textContent=l==='ko'?'EN':'KO'; applyI18n(); }
+function setTheme(t){ S.config.theme=t; document.documentElement.setAttribute('data-theme',t); document.getElementById('themeBtn').textContent=t==='light'?'🌙':'☀️'; }
+function toggleLang(){ setLang(S.config.language==='ko'?'en':'ko'); renderView(); }
+function toggleTheme(){ setTheme(S.config.theme==='light'?'dark':'light'); }
+
+// ===== i18n apply =====
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    const v=t(k);
+    if(v) el.textContent=v;
+  });
+}
+
+// ===== Loading / Toast =====
+function showLoading(msg){
+  let el=document.getElementById('loadingOverlay');
+  if(!el){
+    el=document.createElement('div'); el.id='loadingOverlay'; el.className='loading-overlay';
+    el.innerHTML=`<div class="loading-box"><div class="spinner"></div><div class="loading-msg">${msg||t('loading')}</div></div>`;
+    document.body.appendChild(el);
+  }
+}
+function hideLoading(){ const el=document.getElementById('loadingOverlay'); if(el) el.remove(); }
+let toastTimer;
+function showToast(msg,type='info'){
+  const ex=document.getElementById('toast'); if(ex) ex.remove();
+  const el=document.createElement('div'); el.id='toast'; el.className=`toast ${type}`;
+  el.innerHTML=`<span>${type==='success'?'✓':type==='error'?'✗':'ℹ'}</span><span>${msg}</span>`;
+  document.body.appendChild(el);
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.remove(),3000);
+}
+
+// ===== Sidebar toggle =====
+document.getElementById('sidebarToggle').onclick=()=>document.getElementById('sidebar').classList.toggle('collapsed');
+
+// ===== Drag-drop for file =====
+document.addEventListener('dragover',e=>{e.preventDefault();});
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer.files[0];
+  if(f&&f.name.endsWith('.json')){
+    const inp=document.getElementById('jsonInput');
+    // trigger manual read
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const d=JSON.parse(ev.target.result);
+        const arr=Array.isArray(d)?d:(d.requirements||[]);
+        const dev=arr.filter(r=>r.req_type==='DEV');
+        if(!dev.length){ showToast('DEV 타입 요구사항 없음','error'); return; }
+        S.requirements=dev.map(r=>({...r,is_changed:false}));
+        S.testCases=[];S.mappings=[];S.changeRecs=[];S.llmSessionId=null;S.ui.proposals=[];
+        showToast(S.requirements.length+t('loaded_ok'),'success');
+        updateChangeBadge(); navigate('requirements');
+      }catch(ex){ showToast(t('parse_err')+ex.message,'error'); }
+    };
+    reader.readAsText(f);
+  }
+});
+
+// ===== Init =====
+renderView();
+applyI18n();
+</script>
+</body>
+</html>

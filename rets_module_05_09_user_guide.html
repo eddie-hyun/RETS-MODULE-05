@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RETS MODULE-05 사용설명서</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FFFFFF;--surface:#F9FAFB;--surface-2:#F3F4F6;
+  --border:#E5E7EB;--border-md:#D1D5DB;
+  --text-pri:#111827;--text-sec:#6B7280;--text-dis:#9CA3AF;
+  --accent:#F97316;--accent-hover:#FB923C;--accent-light:#FFF3E0;
+  --tree-w:300px;--header-h:52px;
+  --radius:8px;--shadow:0 1px 3px rgba(0,0,0,0.08);
+  --font:'Noto Sans KR',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#101111;--surface:#1c1d1d;--surface-2:#262727;
+  --border:#303232;--border-md:#404242;
+  --text-pri:#F8FAFC;--text-sec:#94A3B8;--text-dis:#475569;
+  --accent:#F97316;--accent-hover:#FB923C;--accent-light:#451A03;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:13px;letter-spacing:-0.04em;background:var(--bg);color:var(--text-pri);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+/* Header */
+#hdr{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+#hdr .logo{font-weight:700;font-size:15px;color:var(--accent)}
+#hdr .logo span{color:var(--text-pri)}
+#hdr .subtitle{font-size:12px;color:var(--text-sec);border-left:1px solid var(--border);padding-left:12px;margin-left:4px}
+#hdr .spacer{flex:1}
+.hbtn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;color:var(--text-sec);font-size:12px;font-family:var(--font);letter-spacing:-0.04em;transition:all .15s}
+.hbtn:hover{border-color:var(--accent);color:var(--accent)}
+/* Layout */
+#layout{display:flex;flex:1;overflow:hidden}
+/* Tree panel */
+#tree-panel{width:var(--tree-w);background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;padding:12px 0}
+.tree-section{margin-bottom:4px}
+.tree-section-hdr{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:11px;font-weight:600;color:var(--text-dis);text-transform:uppercase;letter-spacing:0.04em;cursor:default}
+.tree-node{display:flex;align-items:center;gap:6px;padding:7px 16px;cursor:pointer;color:var(--text-sec);transition:all .12s;user-select:none;position:relative}
+.tree-node:hover{background:var(--surface-2);color:var(--text-pri)}
+.tree-node.active{background:var(--accent-light);color:var(--accent);font-weight:600}
+.tree-node.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:0 2px 2px 0}
+.tree-node .icon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.tree-node .label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.tree-node .badge{font-size:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:1px 7px;color:var(--text-dis);flex-shrink:0}
+.tree-node.active .badge{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.tree-child{padding-left:32px}
+.tree-child .tree-node{padding:5px 16px 5px 8px;font-size:12px}
+.tree-toggle{font-size:10px;color:var(--text-dis);flex-shrink:0;transition:transform .15s;width:14px}
+.tree-node.collapsed .tree-toggle{transform:rotate(-90deg)}
+/* Detail panel */
+#detail{flex:1;overflow-y:auto;padding:28px 32px;background:var(--bg)}
+.detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text-dis)}
+.detail-empty .big-icon{font-size:48px;opacity:.4}
+.detail-empty p{font-size:13px}
+/* Detail content */
+.detail-content{max-width:860px}
+.dc-breadcrumb{font-size:11px;color:var(--text-dis);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.dc-breadcrumb span{color:var(--accent)}
+.dc-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.dc-icon{font-size:36px;flex-shrink:0;line-height:1}
+.dc-title-block .dc-id{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:4px;letter-spacing:0.02em}
+.dc-title-block .dc-title{font-size:20px;font-weight:700;color:var(--text-pri);line-height:1.3;margin-bottom:6px}
+.dc-title-block .dc-desc{font-size:13px;color:var(--text-sec);line-height:1.7}
+.dc-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.tag-acc{background:var(--accent-light);color:var(--accent);border:1px solid var(--accent)}
+.tag-neu{background:var(--surface-2);color:var(--text-sec);border:1px solid var(--border)}
+/* Sections */
+.dc-section{margin-bottom:28px}
+.dc-section-title{font-size:14px;font-weight:700;color:var(--text-pri);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.dc-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.dc-body{font-size:13px;color:var(--text-sec);line-height:1.8}
+.dc-body p{margin-bottom:10px}
+.dc-body strong{color:var(--text-pri);font-weight:600}
+/* Steps */
+.steps{counter-reset:step;display:flex;flex-direction:column;gap:12px}
+.step{display:flex;gap:14px;align-items:flex-start}
+.step-num{counter-increment:step;content:counter(step);flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:1px}
+.step-body{flex:1}
+.step-body .step-title{font-size:13px;font-weight:600;color:var(--text-pri);margin-bottom:4px}
+.step-body .step-desc{font-size:12px;color:var(--text-sec);line-height:1.7}
+/* Info box */
+.info-box{border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:12px 16px;background:var(--accent-light);margin:12px 0}
+.info-box .info-title{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.info-box .info-body{font-size:12px;color:var(--text-sec);line-height:1.7}
+/* Table */
+.dc-table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.dc-table th{background:var(--surface-2);color:var(--text-sec);font-weight:600;padding:8px 12px;text-align:left;border:1px solid var(--border)}
+.dc-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text-sec);vertical-align:top;line-height:1.6}
+.dc-table tr:hover td{background:var(--surface)}
+/* Code */
+.code-block{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:12px 16px;font-size:11px;font-family:monospace;color:var(--text-sec);overflow-x:auto;margin:8px 0;line-height:1.6}
+/* Sub-node list */
+.sub-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.sub-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;cursor:pointer;transition:all .15s}
+.sub-item:hover{border-color:var(--accent);transform:translateY(-1px)}
+.sub-item .si-icon{font-size:20px;margin-bottom:6px}
+.sub-item .si-name{font-size:12px;font-weight:600;color:var(--text-pri);margin-bottom:3px}
+.sub-item .si-desc{font-size:11px;color:var(--text-sec);line-height:1.5}
+/* Search */
+#search-box{padding:8px 12px;margin:0 12px 8px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--font);letter-spacing:-0.04em;color:var(--text-pri);outline:none;width:calc(100% - 24px)}
+#search-box::placeholder{color:var(--text-dis)}
+#search-box:focus{border-color:var(--accent)}
+.highlight{background:rgba(249,115,22,.25);border-radius:2px;color:var(--accent);font-weight:600}
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-md);border-radius:3px}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <div class="logo">RETS <span>MODULE-05</span></div>
+  <div class="subtitle">사용설명서 v1.0</div>
+  <div class="spacer"></div>
+  <button class="hbtn" id="langBtn" onclick="toggleLang()">EN</button>
+  <button class="hbtn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+</div>
+<div id="layout">
+  <div id="tree-panel">
+    <input id="search-box" placeholder="기능 검색..." oninput="filterTree(this.value)">
+    <div id="tree-root"></div>
+  </div>
+  <div id="detail">
+    <div class="detail-empty" id="empty-state">
+      <div class="big-icon">📖</div>
+      <p id="empty-text">좌측 트리에서 기능을 선택하세요</p>
+    </div>
+    <div class="detail-content" id="detail-content" style="display:none"></div>
+  </div>
+</div>
+<script>
+/* ===================================================
+   DATA
+=================================================== */
+const NODES = [
+{id:'root',parent:null,icon:'🛠',label:{ko:'RETS MODULE-05 개요',en:'RETS MODULE-05 Overview'},badge:null,
+ detail:{
+   id:'GUIDE-000',title:{ko:'RETS MODULE-05 — 요구사항 기반 테스트케이스 생성 도구',en:'RETS MODULE-05 — Requirements-Based Test Case Generator'},
+   icon:'🛠',
+   desc:{ko:'RETS MODULE-05는 DEV-REQ 형식의 요구사항 JSON을 입력받아, LLM 기반으로 테스트케이스를 자동 생성·관리하고 추적성 매트릭스 및 변경 영향 분석을 제공하는 단일 HTML 웹 애플리케이션입니다.',
+         en:'RETS MODULE-05 is a single-page HTML app that accepts DEV-REQ format requirement JSON, auto-generates test cases via LLM, manages traceability matrices, and performs change impact analysis.'},
+   tags:['Vanilla JS','Single HTML','LLM Integration','DEV-REQ'],
+   sections:[
+     {title:{ko:'도구 목적',en:'Purpose'},body:{ko:`<p>소프트웨어 개발 프로젝트에서 요구사항으로부터 테스트케이스를 수동으로 작성하는 작업은 많은 시간과 전문 지식을 요구합니다. RETS MODULE-05는 이 과정을 자동화하여 QA 엔지니어와 개발자가 더 효율적으로 협업할 수 있도록 지원합니다.</p><p>주요 목표: <strong>요구사항 → TC 자동 생성 → 추적성 확보 → 변경 영향 관리</strong></p>`,
+                en:`<p>Manually writing test cases from requirements is time-consuming and expertise-intensive. RETS MODULE-05 automates this, enabling QA engineers and developers to collaborate more efficiently.</p><p>Goal: <strong>Requirements → Auto TC Generation → Traceability → Change Impact Management</strong></p>`}},
+     {title:{ko:'시스템 구성',en:'System Architecture'},body:{ko:`<p>모든 로직은 단일 HTML 파일 내 Vanilla JS로 구현됩니다. 서버가 필요 없으며, LLM 기능은 사내 릴레이 서버(<strong>ai-relay.mooo.com:11443</strong>)를 통해 제공됩니다.</p>`,
+                en:`<p>All logic is implemented in Vanilla JS within a single HTML file. No server required; LLM features are provided via the internal relay server (<strong>ai-relay.mooo.com:11443</strong>).</p>`}},
+     {title:{ko:'지원 화면',en:'Supported Screens'},body:{ko:`<table class="dc-table"><thead><tr><th>화면</th><th>기능</th></tr></thead><tbody>
+<tr><td>대시보드</td><td>전체 현황 카드 및 빠른 탐색</td></tr>
+<tr><td>요구사항 목록</td><td>DEV-REQ JSON 로드 및 그리드 관리</td></tr>
+<tr><td>테스트케이스 관리</td><td>LLM 생성, Accept/Reject, 편집</td></tr>
+<tr><td>추적 매트릭스</td><td>요구사항↔TC 매핑 테이블</td></tr>
+<tr><td>그래프 시각화</td><td>D3.js 네트워크 그래프</td></tr>
+<tr><td>변경 영향 분석</td><td>변경 플래그 → LLM 권고</td></tr>
+<tr><td>파일 출력</td><td>CSV 내보내기</td></tr>
+<tr><td>설정</td><td>Team ID, 언어, 테마</td></tr>
+</tbody></table>`,
+         en:`<table class="dc-table"><thead><tr><th>Screen</th><th>Function</th></tr></thead><tbody>
+<tr><td>Dashboard</td><td>Status cards and quick navigation</td></tr>
+<tr><td>Requirements</td><td>DEV-REQ JSON load and grid management</td></tr>
+<tr><td>Test Cases</td><td>LLM generation, Accept/Reject, edit</td></tr>
+<tr><td>Trace Matrix</td><td>Req↔TC mapping table</td></tr>
+<tr><td>Graph View</td><td>D3.js network graph</td></tr>
+<tr><td>Change Analysis</td><td>Change flags → LLM recommendations</td></tr>
+<tr><td>Export</td><td>CSV export</td></tr>
+<tr><td>Settings</td><td>Team ID, language, theme</td></tr>
+</tbody></table>`}}
+   ]
+ }
+},
+/* ===== SCR-001 Dashboard ===== */
+{id:'scr001',parent:null,icon:'📊',label:{ko:'대시보드',en:'Dashboard'},badge:'SCR-001',
+ detail:{
+   id:'SCR-001',title:{ko:'대시보드 — 전체 현황 한눈에',en:'Dashboard — Overview at a Glance'},
+   icon:'📊',
+   desc:{ko:'앱 시작 시 첫 화면으로 표시됩니다. 요구사항·테스트케이스·커버리지·변경 항목 수를 카드로 확인하고, 각 카드를 클릭하면 해당 화면으로 이동합니다.',
+         en:'Shown as the first screen on app start. View requirement/TC/coverage/change counts as cards; click any card to navigate to that screen.'},
+   tags:['DEV_FR_005','홈 화면'],
+   sections:[
+     {title:{ko:'화면 구성',en:'Screen Layout'},body:{ko:`<p>대시보드는 <strong>4개의 통계 카드</strong>와 <strong>최근 활동 목록</strong>으로 구성됩니다.</p>
+<table class="dc-table"><thead><tr><th>카드</th><th>표시 내용</th><th>클릭 이동</th></tr></thead><tbody>
+<tr><td>요구사항</td><td>로드된 DEV-REQ 총 개수</td><td>요구사항 목록</td></tr>
+<tr><td>테스트케이스</td><td>확정된 TC 총 개수</td><td>TC 관리</td></tr>
+<tr><td>커버리지</td><td>TC 보유 요구사항 비율(%)</td><td>추적 매트릭스</td></tr>
+<tr><td>변경 항목</td><td>변경 플래그 설정된 요구사항 수</td><td>변경 영향 분석</td></tr>
+</tbody></table>`,
+         en:`<p>The dashboard consists of <strong>4 stat cards</strong> and a <strong>recent activity list</strong>.</p>
+<table class="dc-table"><thead><tr><th>Card</th><th>Content</th><th>Click Target</th></tr></thead><tbody>
+<tr><td>Requirements</td><td>Total loaded DEV-REQ count</td><td>Requirements</td></tr>
+<tr><td>Test Cases</td><td>Total confirmed TC count</td><td>TC Management</td></tr>
+<tr><td>Coverage</td><td>% of requirements with TCs</td><td>Trace Matrix</td></tr>
+<tr><td>Changes</td><td>Requirements with change flags</td><td>Change Analysis</td></tr>
+</tbody></table>`}},
+     {title:{ko:'사용 방법',en:'How to Use'},body:{ko:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">앱 접속</div><div class="step-desc">브라우저에서 <code>rets_module_05_07_app.html</code>을 열면 자동으로 대시보드가 표시됩니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">현황 확인</div><div class="step-desc">4개 카드에서 전체 진행 상황을 확인합니다. 변경 항목 카드는 변경 플래그가 있을 때 주황색으로 강조됩니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">화면 이동</div><div class="step-desc">카드를 클릭하거나 좌측 사이드바 메뉴를 클릭하여 원하는 화면으로 이동합니다.</div></div></div>
+</div>`,
+         en:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Open App</div><div class="step-desc">Open <code>rets_module_05_07_app.html</code> in a browser; the dashboard is shown automatically.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Check Status</div><div class="step-desc">Review progress via 4 stat cards. The Changes card is highlighted orange when change flags exist.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Navigate</div><div class="step-desc">Click any card or sidebar menu item to navigate to that screen.</div></div></div>
+</div>`}}
+   ]
+ }
+},
+/* ===== SCR-002 Requirements ===== */
+{id:'scr002',parent:null,icon:'📋',label:{ko:'요구사항 목록',en:'Requirements'},badge:'SCR-002',
+ detail:{
+   id:'SCR-002',title:{ko:'요구사항 목록 — DEV-REQ 로드 및 관리',en:'Requirements — DEV-REQ Load & Management'},
+   icon:'📋',
+   desc:{ko:'DEV-REQ 형식의 JSON 파일을 로드하여 계층형 트리 그리드로 표시합니다. 각 요구사항에 변경 플래그를 설정할 수 있습니다.',
+         en:'Load DEV-REQ format JSON files and display them in a hierarchical tree grid. You can set change flags on individual requirements.'},
+   tags:['DEV_FR_001','JSON 로드','변경 플래그'],
+   sections:[
+     {title:{ko:'DEV-REQ JSON 형식',en:'DEV-REQ JSON Format'},body:{ko:`<p>로드할 JSON 파일은 아래 구조를 따라야 합니다:</p>
+<div class="code-block">{
+  "requirements": [
+    {
+      "req_id": "DEV_FR_001",
+      "req_level": 1,
+      "req_name": "요구사항 이름",
+      "description": "상세 설명",
+      "priority": "Must",
+      "req_status": "active"
+    },
+    ...
+  ]
+}</div>
+<div class="info-box"><div class="info-title">req_id 패턴</div><div class="info-body">DEV_FR_001 (상위) → DEV_FR_001_01 (하위) → DEV_FR_001_01_01 (하하위). 언더스코어 깊이가 req_level과 일치해야 합니다.</div></div>`,
+         en:`<p>JSON files must follow this structure:</p>
+<div class="code-block">{
+  "requirements": [
+    {
+      "req_id": "DEV_FR_001",
+      "req_level": 1,
+      "req_name": "Requirement name",
+      "description": "Details",
+      "priority": "Must",
+      "req_status": "active"
+    }
+  ]
+}</div>`}},
+     {title:{ko:'사용 방법',en:'How to Use'},body:{ko:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">파일 로드</div><div class="step-desc">화면 상단의 <strong>📂 JSON 로드</strong> 버튼을 클릭하고 DEV-REQ JSON 파일을 선택합니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">요구사항 트리 탐색</div><div class="step-desc">계층형 트리 그리드에서 상위 요구사항을 클릭하면 하위 항목이 펼쳐집니다. req_level에 따라 들여쓰기가 적용됩니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">변경 플래그 설정</div><div class="step-desc">각 행의 <strong>⚑ 플래그 아이콘</strong>을 클릭하면 해당 요구사항에 변경 플래그가 토글됩니다. 플래그된 항목은 주황색으로 강조됩니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">TC 생성으로 이동</div><div class="step-desc">요구사항 행을 클릭하면 해당 요구사항이 선택되며, <strong>🧪 테스트케이스 관리</strong> 화면에서 TC를 생성할 수 있습니다.</div></div></div>
+</div>`,
+         en:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Load File</div><div class="step-desc">Click the <strong>📂 Load JSON</strong> button and select your DEV-REQ JSON file.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Browse Tree</div><div class="step-desc">Click top-level requirements to expand children. Indentation reflects req_level.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Set Change Flags</div><div class="step-desc">Click the <strong>⚑ flag icon</strong> on any row to toggle a change flag. Flagged items are highlighted orange.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Go to TC Generation</div><div class="step-desc">Click a requirement row to select it, then go to <strong>🧪 Test Cases</strong> to generate TCs.</div></div></div>
+</div>`}}
+   ]
+ }
+},
+/* ===== SCR-003 TC Management ===== */
+{id:'scr003',parent:null,icon:'🧪',label:{ko:'테스트케이스 관리',en:'Test Cases'},badge:'SCR-003',
+ detail:{
+   id:'SCR-003',title:{ko:'테스트케이스 관리 — LLM 자동 생성 및 관리',en:'Test Cases — LLM Auto-Generation & Management'},
+   icon:'🧪',
+   desc:{ko:'선택된 요구사항에 대해 LLM이 테스트케이스를 자동으로 생성합니다. 생성된 제안을 검토하고 Accept/Reject 후 확정 TC로 저장합니다.',
+         en:'LLM automatically generates test cases for selected requirements. Review proposals and Accept/Reject to save confirmed TCs.'},
+   tags:['DEV_FR_002','DEV_FR_003','LLM','Accept/Reject'],
+   sections:[
+     {title:{ko:'화면 탭 구성',en:'Screen Tabs'},body:{ko:`<table class="dc-table"><thead><tr><th>탭</th><th>설명</th></tr></thead><tbody>
+<tr><td>LLM 제안</td><td>LLM이 생성한 TC 목록. Accept/Reject 버튼으로 검토</td></tr>
+<tr><td>확정된 TC</td><td>Accept된 TC 목록. 인라인 편집 가능</td></tr>
+</tbody></table>`,
+         en:`<table class="dc-table"><thead><tr><th>Tab</th><th>Description</th></tr></thead><tbody>
+<tr><td>LLM Proposals</td><td>TC list generated by LLM. Review with Accept/Reject buttons</td></tr>
+<tr><td>Confirmed TCs</td><td>Accepted TCs. Inline editing supported</td></tr>
+</tbody></table>`}},
+     {title:{ko:'TC 자동 생성 절차',en:'TC Auto-Generation Procedure'},body:{ko:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">요구사항 선택</div><div class="step-desc">좌측 드롭다운에서 TC를 생성할 요구사항을 선택합니다. 또는 요구사항 목록 화면에서 클릭하여 진입합니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">TC 생성 요청</div><div class="step-desc"><strong>🤖 TC 생성</strong> 버튼을 클릭합니다. LLM 릴레이 서버에 요청이 전송되며, 로딩 스피너가 표시됩니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">LLM 응답 검토</div><div class="step-desc">생성된 TC 제안이 카드 형태로 표시됩니다. 각 카드에는 TC ID, 제목, Given-When-Then 시나리오, 기대 결과가 포함됩니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Accept / Reject</div><div class="step-desc">각 TC 카드의 <strong>✓ 수락</strong> 버튼으로 확정하거나, <strong>✗ 거절</strong> 버튼으로 제외합니다. 수락된 TC는 확정 탭으로 이동합니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">확정 TC 편집</div><div class="step-desc"><strong>확정된 TC</strong> 탭에서 각 필드를 클릭하여 인라인 편집할 수 있습니다.</div></div></div>
+</div>`,
+         en:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Select Requirement</div><div class="step-desc">Choose a requirement from the dropdown, or navigate from the Requirements screen.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Request TC Generation</div><div class="step-desc">Click the <strong>🤖 Generate TCs</strong> button. A request is sent to the LLM relay server and a loading spinner is shown.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Review Proposals</div><div class="step-desc">Generated TC proposals appear as cards with TC ID, title, Given-When-Then, and expected result.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Accept / Reject</div><div class="step-desc">Click <strong>✓ Accept</strong> to confirm or <strong>✗ Reject</strong> to exclude. Accepted TCs move to the confirmed tab.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Edit Confirmed TCs</div><div class="step-desc">In the <strong>Confirmed TCs</strong> tab, click any field for inline editing.</div></div></div>
+</div>`}},
+     {title:{ko:'TC 구조',en:'TC Structure'},body:{ko:`<table class="dc-table"><thead><tr><th>필드</th><th>설명</th><th>예시</th></tr></thead><tbody>
+<tr><td>tc_id</td><td>TC 고유 식별자</td><td>TC-DEV_FR_001-001</td></tr>
+<tr><td>req_id</td><td>연결된 요구사항 ID</td><td>DEV_FR_001</td></tr>
+<tr><td>tc_name</td><td>TC 이름</td><td>JSON 파일 정상 로드 확인</td></tr>
+<tr><td>given</td><td>사전 조건</td><td>유효한 DEV-REQ JSON 파일 준비</td></tr>
+<tr><td>when</td><td>실행 동작</td><td>JSON 로드 버튼 클릭</td></tr>
+<tr><td>then</td><td>기대 결과</td><td>요구사항 트리에 항목 표시</td></tr>
+<tr><td>priority</td><td>우선순위</td><td>High / Medium / Low</td></tr>
+<tr><td>tc_status</td><td>상태</td><td>confirmed / rejected</td></tr>
+</tbody></table>`,
+         en:`<table class="dc-table"><thead><tr><th>Field</th><th>Description</th><th>Example</th></tr></thead><tbody>
+<tr><td>tc_id</td><td>Unique TC identifier</td><td>TC-DEV_FR_001-001</td></tr>
+<tr><td>req_id</td><td>Linked requirement ID</td><td>DEV_FR_001</td></tr>
+<tr><td>tc_name</td><td>TC name</td><td>Verify JSON file loads correctly</td></tr>
+<tr><td>given</td><td>Precondition</td><td>Valid DEV-REQ JSON file ready</td></tr>
+<tr><td>when</td><td>Action</td><td>Click Load JSON button</td></tr>
+<tr><td>then</td><td>Expected result</td><td>Requirements tree shows items</td></tr>
+<tr><td>priority</td><td>Priority</td><td>High / Medium / Low</td></tr>
+<tr><td>tc_status</td><td>Status</td><td>confirmed / rejected</td></tr>
+</tbody></table>`}}
+   ]
+ }
+},
+/* ===== SCR-004 Trace Matrix ===== */
+{id:'scr004',parent:null,icon:'🔗',label:{ko:'추적 매트릭스',en:'Trace Matrix'},badge:'SCR-004',
+ detail:{
+   id:'SCR-004',title:{ko:'추적 매트릭스 — 요구사항↔TC 매핑',en:'Trace Matrix — Req↔TC Mapping'},
+   icon:'🔗',
+   desc:{ko:'요구사항과 테스트케이스 간의 연결 관계를 표 형태로 시각화합니다. 매핑을 클릭하여 토글할 수 있습니다.',
+         en:'Visualizes the relationship between requirements and test cases in a table. Click cells to toggle mappings.'},
+   tags:['DEV_FR_004','RTM','추적성'],
+   sections:[
+     {title:{ko:'매트릭스 구성',en:'Matrix Layout'},body:{ko:`<p>추적 매트릭스는 <strong>행=요구사항, 열=테스트케이스</strong>로 구성됩니다. 셀이 채워진(●) 경우 해당 요구사항과 TC가 연결되어 있음을 의미합니다.</p>
+<div class="info-box"><div class="info-title">커버리지 지표</div><div class="info-body">매트릭스 우측 상단에 전체 커버리지 비율(%)이 표시됩니다. TC가 하나도 없는 요구사항 행은 빨간색으로 강조됩니다.</div></div>`,
+         en:`<p>The trace matrix has <strong>rows=requirements, columns=test cases</strong>. A filled cell (●) indicates a mapping between a requirement and TC.</p>
+<div class="info-box"><div class="info-title">Coverage Indicator</div><div class="info-body">Overall coverage % is shown top-right. Requirement rows with no TCs are highlighted in red.</div></div>`}},
+     {title:{ko:'사용 방법',en:'How to Use'},body:{ko:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">매트릭스 확인</div><div class="step-desc">요구사항과 TC가 로드된 상태에서 이 화면에 진입하면 자동으로 매트릭스가 렌더링됩니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">매핑 토글</div><div class="step-desc">셀을 클릭하면 해당 요구사항-TC 매핑이 추가/제거됩니다. ● 표시가 있으면 연결됨, 없으면 미연결 상태입니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">커버리지 확인</div><div class="step-desc">빨간색으로 표시된 행의 요구사항은 TC가 없으므로 TC 관리 화면에서 TC를 생성하세요.</div></div></div>
+</div>`,
+         en:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">View Matrix</div><div class="step-desc">With requirements and TCs loaded, navigating to this screen auto-renders the matrix.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Toggle Mapping</div><div class="step-desc">Click a cell to add/remove the req-TC mapping. ● = linked, empty = unlinked.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Check Coverage</div><div class="step-desc">Requirements shown in red have no TCs. Go to Test Cases to generate TCs for them.</div></div></div>
+</div>`}}
+   ]
+ }
+},
+/* ===== SCR-005 Graph ===== */
+{id:'scr005',parent:null,icon:'🕸',label:{ko:'그래프 시각화',en:'Graph View'},badge:'SCR-005',
+ detail:{
+   id:'SCR-005',title:{ko:'그래프 시각화 — D3.js 추적성 네트워크',en:'Graph View — D3.js Traceability Network'},
+   icon:'🕸',
+   desc:{ko:'요구사항과 TC 간의 연결 관계를 D3.js force-directed 네트워크 그래프로 표시합니다. 줌/패닝과 포커스 모드를 지원합니다.',
+         en:'Displays the req-TC traceability network as a D3.js force-directed graph with zoom/pan and focus mode.'},
+   tags:['DEV_FR_007','D3.js','네트워크 그래프'],
+   sections:[
+     {title:{ko:'그래프 요소',en:'Graph Elements'},body:{ko:`<table class="dc-table"><thead><tr><th>요소</th><th>의미</th><th>색상</th></tr></thead><tbody>
+<tr><td>원형 노드 (큰)</td><td>요구사항(DEV_FR_*)</td><td>주황색 (#F97316)</td></tr>
+<tr><td>원형 노드 (작은)</td><td>테스트케이스(TC-*)</td><td>파란색</td></tr>
+<tr><td>선(엣지)</td><td>요구사항↔TC 매핑</td><td>회색</td></tr>
+</tbody></table>`,
+         en:`<table class="dc-table"><thead><tr><th>Element</th><th>Meaning</th><th>Color</th></tr></thead><tbody>
+<tr><td>Large circle node</td><td>Requirement (DEV_FR_*)</td><td>Orange (#F97316)</td></tr>
+<tr><td>Small circle node</td><td>Test Case (TC-*)</td><td>Blue</td></tr>
+<tr><td>Edge (line)</td><td>Req↔TC mapping</td><td>Gray</td></tr>
+</tbody></table>`}},
+     {title:{ko:'인터랙션',en:'Interactions'},body:{ko:`<table class="dc-table"><thead><tr><th>동작</th><th>효과</th></tr></thead><tbody>
+<tr><td>스크롤 휠</td><td>줌 인/아웃</td></tr>
+<tr><td>배경 드래그</td><td>뷰 패닝</td></tr>
+<tr><td>노드 드래그</td><td>노드 위치 이동 (레이아웃에 고정)</td></tr>
+<tr><td>노드 클릭</td><td>해당 노드 포커스 (연결된 노드/엣지 강조)</td></tr>
+<tr><td>포커스 버튼</td><td>선택 노드 중심으로 뷰 이동</td></tr>
+</tbody></table>`,
+         en:`<table class="dc-table"><thead><tr><th>Action</th><th>Effect</th></tr></thead><tbody>
+<tr><td>Scroll wheel</td><td>Zoom in/out</td></tr>
+<tr><td>Drag background</td><td>Pan view</td></tr>
+<tr><td>Drag node</td><td>Move node position (pinned)</td></tr>
+<tr><td>Click node</td><td>Focus node (highlight connected nodes/edges)</td></tr>
+<tr><td>Focus button</td><td>Center view on selected node</td></tr>
+</tbody></table>`}}
+   ]
+ }
+},
+/* ===== SCR-006 Change Analysis ===== */
+{id:'scr006',parent:null,icon:'⚠',label:{ko:'변경 영향 분석',en:'Change Analysis'},badge:'SCR-006',
+ detail:{
+   id:'SCR-006',title:{ko:'변경 영향 분석 — LLM 기반 변경 영향 권고',en:'Change Analysis — LLM-Based Change Impact Recommendations'},
+   icon:'⚠',
+   desc:{ko:'변경 플래그가 설정된 요구사항에 대해 LLM이 영향받는 TC와 대응 방안을 권고합니다. 권고안을 Accept/Reject하여 변경 대응 이력을 관리합니다.',
+         en:'For flagged requirements, LLM recommends affected TCs and countermeasures. Accept/Reject recommendations to manage change response history.'},
+   tags:['DEV_FR_006','변경 관리','LLM'],
+   sections:[
+     {title:{ko:'사용 흐름',en:'Usage Flow'},body:{ko:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">변경 플래그 확인</div><div class="step-desc">요구사항 목록에서 플래그된 항목이 이 화면 상단에 목록으로 표시됩니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">변경 영향 분석 요청</div><div class="step-desc">분석할 요구사항을 선택하고 <strong>🔍 변경 분석</strong> 버튼을 클릭합니다. LLM이 연결된 TC와 변경 영향을 분석합니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">권고안 검토</div><div class="step-desc">LLM이 생성한 변경 권고안 카드가 표시됩니다. 각 카드에는 영향받는 TC 목록, 변경 유형, 권고 조치가 포함됩니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Accept / Reject</div><div class="step-desc">권고안을 수락하면 관련 TC의 상태가 업데이트됩니다. 거절하면 권고안이 제외됩니다.</div></div></div>
+</div>`,
+         en:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Check Flagged Items</div><div class="step-desc">Flagged requirements from the Requirements screen appear in a list at the top.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Request Analysis</div><div class="step-desc">Select a requirement and click <strong>🔍 Analyze Changes</strong>. LLM analyzes linked TCs and change impact.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Review Recommendations</div><div class="step-desc">LLM generates recommendation cards showing affected TCs, change type, and suggested actions.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Accept / Reject</div><div class="step-desc">Accepting a recommendation updates related TC statuses. Rejecting removes the recommendation.</div></div></div>
+</div>`}}
+   ]
+ }
+},
+/* ===== SCR-007 Export ===== */
+{id:'scr007',parent:null,icon:'📤',label:{ko:'파일 출력',en:'Export'},badge:'SCR-007',
+ detail:{
+   id:'SCR-007',title:{ko:'파일 출력 — CSV 내보내기',en:'Export — CSV Download'},
+   icon:'📤',
+   desc:{ko:'확정된 테스트케이스와 추적 매트릭스를 CSV 파일로 내보냅니다.',
+         en:'Export confirmed test cases and the trace matrix as CSV files.'},
+   tags:['DEV_FR_008','CSV','내보내기'],
+   sections:[
+     {title:{ko:'내보내기 파일 종류',en:'Export File Types'},body:{ko:`<table class="dc-table"><thead><tr><th>파일</th><th>내용</th><th>컬럼</th></tr></thead><tbody>
+<tr><td>testcases.csv</td><td>확정된 TC 전체 목록</td><td>tc_id, req_id, tc_name, given, when, then, priority, tc_status</td></tr>
+<tr><td>trace_matrix.csv</td><td>요구사항↔TC 매핑 현황</td><td>req_id, tc_id, mapped</td></tr>
+</tbody></table>`,
+         en:`<table class="dc-table"><thead><tr><th>File</th><th>Content</th><th>Columns</th></tr></thead><tbody>
+<tr><td>testcases.csv</td><td>All confirmed TCs</td><td>tc_id, req_id, tc_name, given, when, then, priority, tc_status</td></tr>
+<tr><td>trace_matrix.csv</td><td>Req↔TC mapping status</td><td>req_id, tc_id, mapped</td></tr>
+</tbody></table>`}},
+     {title:{ko:'사용 방법',en:'How to Use'},body:{ko:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">파일 출력 화면 이동</div><div class="step-desc">사이드바에서 <strong>📤 파일 출력</strong>을 클릭합니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">내보내기 실행</div><div class="step-desc">원하는 파일 옆의 <strong>⬇ 다운로드</strong> 버튼을 클릭합니다. 브라우저의 기본 파일 다운로드가 실행됩니다.</div></div></div>
+</div>
+<div class="info-box"><div class="info-title">유의사항</div><div class="info-body">CSV 파일은 UTF-8 BOM 인코딩으로 저장됩니다. Microsoft Excel에서 한글이 깨지지 않도록 하려면 파일을 열 때 UTF-8 인코딩을 선택하세요.</div></div>`,
+         en:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Navigate to Export</div><div class="step-desc">Click <strong>📤 Export</strong> in the sidebar.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Download</div><div class="step-desc">Click the <strong>⬇ Download</strong> button next to the desired file. The browser's default download runs.</div></div></div>
+</div>
+<div class="info-box"><div class="info-title">Note</div><div class="info-body">CSV files are saved with UTF-8 BOM encoding. When opening in Excel, select UTF-8 encoding to avoid garbled Korean text.</div></div>`}}
+   ]
+ }
+},
+/* ===== SCR-008 Settings ===== */
+{id:'scr008',parent:null,icon:'⚙',label:{ko:'설정',en:'Settings'},badge:'SCR-008',
+ detail:{
+   id:'SCR-008',title:{ko:'설정 — 앱 환경 구성',en:'Settings — App Configuration'},
+   icon:'⚙',
+   desc:{ko:'LLM 릴레이 서버 팀 ID, 언어, 테마를 설정합니다. 설정은 세션 중 메모리에 유지됩니다.',
+         en:'Configure the LLM relay team ID, language, and theme. Settings persist in memory during the session.'},
+   tags:['DEV_FR_009','설정','team_id'],
+   sections:[
+     {title:{ko:'설정 항목',en:'Settings Fields'},body:{ko:`<table class="dc-table"><thead><tr><th>항목</th><th>설명</th><th>기본값</th></tr></thead><tbody>
+<tr><td>Team ID</td><td>LLM 릴레이 서버의 팀 식별자. 반드시 올바른 값 입력 필요</td><td>team2</td></tr>
+<tr><td>언어</td><td>UI 표시 언어 (한국어/영어)</td><td>한국어</td></tr>
+<tr><td>테마</td><td>라이트/다크 모드 전환</td><td>라이트</td></tr>
+</tbody></table>
+<div class="info-box"><div class="info-title">Team ID 주의사항</div><div class="info-body">Team ID가 잘못된 경우 LLM 기능(TC 생성, 변경 분석)이 동작하지 않습니다. 인프라 담당자에게 확인하세요.</div></div>`,
+         en:`<table class="dc-table"><thead><tr><th>Field</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td>Team ID</td><td>Team identifier for the LLM relay server. Must be correct.</td><td>team2</td></tr>
+<tr><td>Language</td><td>UI display language (Korean/English)</td><td>Korean</td></tr>
+<tr><td>Theme</td><td>Light/Dark mode toggle</td><td>Light</td></tr>
+</tbody></table>
+<div class="info-box"><div class="info-title">Team ID Warning</div><div class="info-body">If Team ID is incorrect, LLM features (TC generation, change analysis) will not work. Check with your infrastructure team.</div></div>`}}
+   ]
+ }
+},
+/* ===== Common: LLM ===== */
+{id:'llm',parent:null,icon:'🤖',label:{ko:'LLM 연동 구조',en:'LLM Integration'},badge:null,
+ detail:{
+   id:'TECH-001',title:{ko:'LLM 연동 구조 — 릴레이 서버 통신',en:'LLM Integration — Relay Server Communication'},
+   icon:'🤖',
+   desc:{ko:'앱은 사내 LLM 릴레이 서버(ai-relay.mooo.com:11443)와 통신하여 TC 생성 및 변경 분석 기능을 제공합니다.',
+         en:'The app communicates with the internal LLM relay server (ai-relay.mooo.com:11443) to provide TC generation and change analysis.'},
+   tags:['LLM','릴레이 서버','team2'],
+   sections:[
+     {title:{ko:'통신 흐름',en:'Communication Flow'},body:{ko:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">세션 초기화 (최초 1회)</div><div class="step-desc"><code>POST /chat/new</code>로 session_id를 발급받습니다. team_id와 시스템 프롬프트를 포함합니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">메시지 전송</div><div class="step-desc"><code>POST /chat/{session_id}</code>로 요청을 전송합니다. team_id와 message를 포함합니다.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">JSON 응답 파싱</div><div class="step-desc">LLM은 JSON 형식으로 응답합니다. 앱 내부의 parseLlmJson() 함수가 마크다운 펜스를 제거하고 파싱합니다.</div></div></div>
+</div>`,
+         en:`<div class="steps">
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Session Init (once)</div><div class="step-desc">Issue a session_id via <code>POST /chat/new</code>, including team_id and system prompt.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Send Message</div><div class="step-desc">Send requests via <code>POST /chat/{session_id}</code> with team_id and message.</div></div></div>
+<div class="step"><div class="step-num"></div><div class="step-body"><div class="step-title">Parse JSON Response</div><div class="step-desc">LLM responds in JSON. The app's parseLlmJson() strips markdown fences and parses.</div></div></div>
+</div>`}},
+     {title:{ko:'오류 처리',en:'Error Handling'},body:{ko:`<table class="dc-table"><thead><tr><th>오류 상황</th><th>앱 동작</th><th>조치 방법</th></tr></thead><tbody>
+<tr><td>네트워크 연결 실패</td><td>에러 토스트 표시</td><td>네트워크 연결 확인</td></tr>
+<tr><td>잘못된 Team ID</td><td>401/403 오류 표시</td><td>설정에서 Team ID 수정</td></tr>
+<tr><td>JSON 파싱 실패</td><td>에러 메시지 표시</td><td>재시도 버튼 클릭</td></tr>
+</tbody></table>`,
+         en:`<table class="dc-table"><thead><tr><th>Error</th><th>App Behavior</th><th>Fix</th></tr></thead><tbody>
+<tr><td>Network failure</td><td>Error toast shown</td><td>Check network connection</td></tr>
+<tr><td>Invalid Team ID</td><td>401/403 error shown</td><td>Fix Team ID in Settings</td></tr>
+<tr><td>JSON parse failure</td><td>Error message shown</td><td>Click retry button</td></tr>
+</tbody></table>`}}
+   ]
+ }
+},
+/* ===== Common: Navigation ===== */
+{id:'nav',parent:null,icon:'🧭',label:{ko:'네비게이션 & 공통 UI',en:'Navigation & Common UI'},badge:null,
+ detail:{
+   id:'TECH-002',title:{ko:'네비게이션 & 공통 UI',en:'Navigation & Common UI'},
+   icon:'🧭',
+   desc:{ko:'앱의 공통 레이아웃 요소(헤더, 사이드바, 테마 전환)에 대한 설명입니다.',
+         en:'Description of common layout elements (header, sidebar, theme toggle) of the app.'},
+   tags:['헤더','사이드바','다크모드'],
+   sections:[
+     {title:{ko:'헤더',en:'Header'},body:{ko:`<table class="dc-table"><thead><tr><th>요소</th><th>기능</th></tr></thead><tbody>
+<tr><td>≡ (햄버거)</td><td>사이드바 확장/축소 토글</td></tr>
+<tr><td>RETS MODULE-05 로고</td><td>클릭 시 대시보드로 이동</td></tr>
+<tr><td>KO | EN 버튼</td><td>UI 언어 즉시 전환</td></tr>
+<tr><td>☀/🌙 버튼</td><td>라이트/다크 모드 전환</td></tr>
+<tr><td>⚙ 버튼</td><td>설정 화면으로 이동</td></tr>
+</tbody></table>`,
+         en:`<table class="dc-table"><thead><tr><th>Element</th><th>Function</th></tr></thead><tbody>
+<tr><td>≡ (hamburger)</td><td>Toggle sidebar expand/collapse</td></tr>
+<tr><td>RETS MODULE-05 logo</td><td>Click to go to Dashboard</td></tr>
+<tr><td>KO | EN button</td><td>Instantly switch UI language</td></tr>
+<tr><td>☀/🌙 button</td><td>Toggle light/dark mode</td></tr>
+<tr><td>⚙ button</td><td>Go to Settings screen</td></tr>
+</tbody></table>`}},
+     {title:{ko:'사이드바',en:'Sidebar'},body:{ko:`<p>사이드바는 <strong>200px 확장</strong> / <strong>52px 축소</strong> 두 가지 상태로 전환됩니다. 축소 시 아이콘만 표시되며, 각 아이콘에 마우스를 올리면 화면 이름이 툴팁으로 표시됩니다.</p>
+<p>활성 화면의 메뉴 항목은 주황색 배경과 왼쪽 강조선으로 표시됩니다.</p>`,
+         en:`<p>The sidebar switches between <strong>200px expanded</strong> and <strong>52px collapsed</strong>. In collapsed mode only icons are shown; hover to see screen names as tooltips.</p>
+<p>The active screen's menu item is highlighted with an orange background and left accent line.</p>`}}
+   ]
+ }
+}
+];
+
+/* ===================================================
+   STATE
+=================================================== */
+let lang = 'ko';
+let activeId = null;
+const expandedGroups = new Set(['root','scr001','scr002','scr003','scr004','scr005','scr006','scr007','scr008','llm','nav']);
+
+/* ===================================================
+   RENDER TREE
+=================================================== */
+function renderTree(filter){
+  const root = document.getElementById('tree-root');
+  root.innerHTML = '';
+  const f = (filter||'').toLowerCase().trim();
+
+  NODES.filter(n=>!n.parent).forEach(node=>{
+    const label = node.label[lang];
+    if(f && !label.toLowerCase().includes(f) && !node.id.includes(f)) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'tree-section';
+
+    const row = document.createElement('div');
+    row.className = 'tree-node' + (node.id === activeId ? ' active' : '');
+    row.dataset.id = node.id;
+    row.innerHTML = `<span class="icon">${node.icon}</span><span class="label">${f ? highlight(label,f) : label}</span>${node.badge ? `<span class="badge">${node.badge}</span>` : ''}`;
+    row.onclick = ()=>selectNode(node.id);
+
+    wrap.appendChild(row);
+    root.appendChild(wrap);
+  });
+}
+
+function highlight(text, q){
+  if(!q) return text;
+  const re = new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+  return text.replace(re,'<mark class="highlight">$1</mark>');
+}
+
+/* ===================================================
+   SELECT NODE
+=================================================== */
+function selectNode(id){
+  activeId = id;
+  renderTree(document.getElementById('search-box').value);
+  const node = NODES.find(n=>n.id===id);
+  if(!node || !node.detail) return;
+  renderDetail(node.detail);
+}
+
+function renderDetail(d){
+  document.getElementById('empty-state').style.display='none';
+  const dc = document.getElementById('detail-content');
+  dc.style.display='block';
+
+  const title = d.title[lang];
+  const desc = d.desc[lang];
+  const tags = d.tags||[];
+
+  let html = `<div class="dc-breadcrumb">RETS MODULE-05 사용설명서 <span>›</span> <span>${title}</span></div>`;
+  html += `<div class="dc-header">
+    <div class="dc-icon">${d.icon}</div>
+    <div class="dc-title-block">
+      <div class="dc-id">${d.id}</div>
+      <div class="dc-title">${title}</div>
+      <div class="dc-desc">${desc}</div>
+      <div class="dc-tags">${tags.map(t=>`<span class="tag ${t.startsWith('DEV_')?'tag-acc':'tag-neu'}">${t}</span>`).join('')}</div>
+    </div>
+  </div>`;
+
+  (d.sections||[]).forEach(sec=>{
+    html += `<div class="dc-section">
+      <div class="dc-section-title">${sec.title[lang]}</div>
+      <div class="dc-body">${sec.body[lang]}</div>
+    </div>`;
+  });
+
+  dc.innerHTML = html;
+  // Fix step numbers
+  dc.querySelectorAll('.step').forEach((el,i)=>{
+    const num = el.querySelector('.step-num');
+    if(num) num.textContent = i+1;
+  });
+}
+
+/* ===================================================
+   SEARCH
+=================================================== */
+function filterTree(val){
+  renderTree(val);
+}
+
+/* ===================================================
+   THEME / LANG
+=================================================== */
+function toggleTheme(){
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀';
+}
+function toggleLang(){
+  lang = lang==='ko' ? 'en' : 'ko';
+  document.getElementById('langBtn').textContent = lang==='ko' ? 'EN' : 'KO';
+  document.documentElement.lang = lang;
+  renderTree(document.getElementById('search-box').value);
+  document.getElementById('empty-text').textContent = lang==='ko' ? '좌측 트리에서 기능을 선택하세요' : 'Select a feature from the tree';
+  document.getElementById('search-box').placeholder = lang==='ko' ? '기능 검색...' : 'Search features...';
+  if(activeId) selectNode(activeId);
+}
+
+/* ===================================================
+   INIT
+=================================================== */
+renderTree();
+selectNode('root');
+</script>
+</body>
+</html>
